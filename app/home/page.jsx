@@ -1,17 +1,23 @@
 import React from 'react';
-import Header from '@/components/Header'; // Sesuaikan path import dengan struktur folder Anda
-import BottomNav from '@/components/BottomNav';
 import { 
-  Search, Flame, Leaf, Egg, Apple, Croissant, 
-  Fish, Wine, IceCream, Brush, MoreHorizontal, 
-  Filter, Heart, Plus, Truck 
+  Menu, ShoppingCart, Search, Flame, Leaf, 
+  Egg, Apple, Croissant, Fish, Wine, IceCream, Brush, MoreHorizontal, 
+  Filter, Heart, Plus, Truck, FileText, Home 
 } from 'lucide-react';
+import BottomNav from '@/components/BottomNav';
 
 export default function FluidMarket() {
   return (
     <div className="app-container">
-      {/* Panggil Komponen Header di sini */}
-      <Header />
+      {/* Header */}
+      <header className="header">
+        <button className="icon-btn"><Menu size={24} /></button>
+        <h1 className="logo">Fluid Market</h1>
+        <div className="cart-container">
+          <ShoppingCart size={24} />
+          <span className="cart-badge">3</span>
+        </div>
+      </header>
 
       {/* Search Bar */}
       <div className="search-container">
@@ -32,6 +38,7 @@ export default function FluidMarket() {
             <h3>Organic Seasonal<br/>Fruit Box</h3>
             <p className="price">$24.99</p>
           </div>
+          {/* Placeholder untuk gambar buah */}
           <div className="hero-image-placeholder">🍓</div>
         </div>
 
@@ -85,8 +92,48 @@ export default function FluidMarket() {
               </div>
             </div>
           </div>
-          
-          {/* Anda bisa menambahkan sisa produk lainnya di sini agar kode tidak terlalu panjang */}
+
+          {/* Product 2 */}
+          <div className="product-card">
+            <div className="product-image" style={{backgroundColor: '#7b1f31'}}>🥛</div>
+            <button className="fav-btn"><Heart size={16} /></button>
+            <div className="product-info">
+              <span className="product-cat">DAIRY</span>
+              <h4 className="product-name">Whole Milk 1L</h4>
+              <div className="product-bottom">
+                <span className="product-price">$3.40</span>
+                <button className="add-btn"><Plus size={20} color="white" /></button>
+              </div>
+            </div>
+          </div>
+
+          {/* Product 3 */}
+          <div className="product-card">
+            <div className="product-image" style={{backgroundColor: '#4a3b32'}}>🍞</div>
+            <button className="fav-btn"><Heart size={16} /></button>
+            <div className="product-info">
+              <span className="product-cat">BAKERY</span>
+              <h4 className="product-name">Sourdough Loaf</h4>
+              <div className="product-bottom">
+                <span className="product-price">$4.50</span>
+                <button className="add-btn"><Plus size={20} color="white" /></button>
+              </div>
+            </div>
+          </div>
+
+          {/* Product 4 */}
+          <div className="product-card">
+            <div className="product-image" style={{backgroundColor: '#5d5843'}}>☕</div>
+            <button className="fav-btn"><Heart size={16} /></button>
+            <div className="product-info">
+              <span className="product-cat">PANTRY</span>
+              <h4 className="product-name">Arabica Roast 250g</h4>
+              <div className="product-bottom">
+                <span className="product-price">$12.99</span>
+                <button className="add-btn"><Plus size={20} color="white" /></button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -100,8 +147,8 @@ export default function FluidMarket() {
         <button className="join-btn">Join Now</button>
       </section>
 
-      {/* Panggil Komponen BottomNav di sini */}
-      <BottomNav />
+      {/* Bottom Navigation */}
+         <BottomNav />
     </div>
   );
 }
