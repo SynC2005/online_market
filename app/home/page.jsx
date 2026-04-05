@@ -1,77 +1,46 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import { 
   Menu, ShoppingCart, Search, Flame, Leaf, 
   Egg, Apple, Croissant, Fish, Wine, IceCream, Brush, MoreHorizontal, 
-  Filter, Heart, Plus, Truck, FileText, Home 
+  Filter, Truck 
 } from 'lucide-react';
+
 import BottomNav from '@/components/BottomNav';
+import ProductCard from '@/components/ProductCard';
+import { supabase } from '@/utils/supabase'; // Import instance supabase Anda
 
 export default function FluidMarket() {
+  const [products, setProducts] = useState([]); // State untuk menyimpan data produk
+  const [loading, setLoading] = useState(true); // State untuk loading
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      // Mengambil data dari tabel 'products' di Supabase
+      const { data, error } = await supabase
+        .from('products')
+        .select('*');
+
+      if (error) throw error;
+      if (data) setProducts(data);
+    } catch (error) {
+      console.error('Error fetching products:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="app-container">
-      {/* Header */}
-      <header className="header">
-        <button className="icon-btn"><Menu size={24} /></button>
-        <h1 className="logo">Fluid Market</h1>
-        <div className="cart-container">
-          <ShoppingCart size={24} />
-          <span className="cart-badge">3</span>
-        </div>
-      </header>
+      {/* ... (Header & Search Bar tetap sama) ... */}
 
-      {/* Search Bar */}
-      <div className="search-container">
-        <Search size={20} className="search-icon" />
-        <input type="text" placeholder="Search fresh groceries..." className="search-input" />
-      </div>
-
-      {/* Fresh for You Section */}
-      <section className="section">
-        <div className="section-header">
-          <h2>Fresh for You</h2>
-          <a href="#" className="view-all">View All</a>
-        </div>
-        
-        <div className="hero-banner">
-          <div className="hero-content">
-            <span className="badge">DAILY FRESH</span>
-            <h3>Organic Seasonal<br/>Fruit Box</h3>
-            <p className="price">$24.99</p>
-          </div>
-          {/* Placeholder untuk gambar buah */}
-          <div className="hero-image-placeholder">🍓</div>
-        </div>
-
-        <div className="sub-banners">
-          <div className="card hot-deals">
-            <Flame size={20} className="card-icon" />
-            <h4>Hot Deals</h4>
-            <p>Up to 40% OFF</p>
-          </div>
-          <div className="card vegan-picks">
-            <Leaf size={20} className="card-icon" />
-            <h4>Vegan Picks</h4>
-            <p>Plant-based diet</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Browse Categories */}
-      <section className="section">
-        <h2>Browse Categories</h2>
-        <div className="category-grid">
-          <div className="category-item"><div className="cat-icon"><Egg size={20}/></div><span>Dairy</span></div>
-          <div className="category-item"><div className="cat-icon"><Apple size={20}/></div><span>Veggie</span></div>
-          <div className="category-item"><div className="cat-icon"><Croissant size={20}/></div><span>Bakery</span></div>
-          <div className="category-item"><div className="cat-icon"><Fish size={20}/></div><span>Seafood</span></div>
-          <div className="category-item"><div className="cat-icon"><Wine size={20}/></div><span>Drinks</span></div>
-          <div className="category-item"><div className="cat-icon"><IceCream size={20}/></div><span>Snacks</span></div>
-          <div className="category-item"><div className="cat-icon"><Brush size={20}/></div><span>Home</span></div>
-          <div className="category-item"><div className="cat-icon"><MoreHorizontal size={20}/></div><span>More</span></div>
-        </div>
-      </section>
-
-      {/* Popular Products */}
+      {/* Popular Products Section */}
       <section className="section">
         <div className="section-header">
           <h2>Popular Products</h2>
@@ -79,76 +48,26 @@ export default function FluidMarket() {
         </div>
         
         <div className="product-grid">
-          {/* Product 1 */}
-          <div className="product-card">
-            <div className="product-image" style={{backgroundColor: '#e5f3cc'}}>🥑</div>
-            <button className="fav-btn"><Heart size={16} /></button>
-            <div className="product-info">
-              <span className="product-cat">PRODUCE</span>
-              <h4 className="product-name">Hass Avocado (Unit)</h4>
-              <div className="product-bottom">
-                <span className="product-price">$1.85</span>
-                <button className="add-btn"><Plus size={20} color="white" /></button>
-              </div>
-            </div>
-          </div>
-
-          {/* Product 2 */}
-          <div className="product-card">
-            <div className="product-image" style={{backgroundColor: '#7b1f31'}}>🥛</div>
-            <button className="fav-btn"><Heart size={16} /></button>
-            <div className="product-info">
-              <span className="product-cat">DAIRY</span>
-              <h4 className="product-name">Whole Milk 1L</h4>
-              <div className="product-bottom">
-                <span className="product-price">$3.40</span>
-                <button className="add-btn"><Plus size={20} color="white" /></button>
-              </div>
-            </div>
-          </div>
-
-          {/* Product 3 */}
-          <div className="product-card">
-            <div className="product-image" style={{backgroundColor: '#4a3b32'}}>🍞</div>
-            <button className="fav-btn"><Heart size={16} /></button>
-            <div className="product-info">
-              <span className="product-cat">BAKERY</span>
-              <h4 className="product-name">Sourdough Loaf</h4>
-              <div className="product-bottom">
-                <span className="product-price">$4.50</span>
-                <button className="add-btn"><Plus size={20} color="white" /></button>
-              </div>
-            </div>
-          </div>
-
-          {/* Product 4 */}
-          <div className="product-card">
-            <div className="product-image" style={{backgroundColor: '#5d5843'}}>☕</div>
-            <button className="fav-btn"><Heart size={16} /></button>
-            <div className="product-info">
-              <span className="product-cat">PANTRY</span>
-              <h4 className="product-name">Arabica Roast 250g</h4>
-              <div className="product-bottom">
-                <span className="product-price">$12.99</span>
-                <button className="add-btn"><Plus size={20} color="white" /></button>
-              </div>
-            </div>
-          </div>
+          {loading ? (
+            <p>Memuat produk...</p>
+          ) : products.length > 0 ? (
+            products.map((product) => (
+              <ProductCard 
+                key={product.id}
+                image={product.image}
+                category={product.category}
+                name={product.name}
+                price={product.price}
+                description={product.description}
+              />
+            ))
+          ) : (
+            <p>Tidak ada produk tersedia.</p>
+          )}
         </div>
       </section>
 
-      {/* Free Delivery Banner */}
-      <section className="promo-banner">
-        <div className="promo-header">
-          <div className="promo-icon"><Truck size={24} color="#0d47a1" /></div>
-          <h3>Free Delivery</h3>
-        </div>
-        <p>Join our membership program and get unlimited free deliveries on orders over $35.</p>
-        <button className="join-btn">Join Now</button>
-      </section>
-
-      {/* Bottom Navigation */}
-         <BottomNav />
+      <BottomNav />
     </div>
   );
 }
