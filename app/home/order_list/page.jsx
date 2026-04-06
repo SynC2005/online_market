@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Menu,
   ShoppingBag,
@@ -76,6 +77,7 @@ const sampleOrdersData = [
 
 export default function OrderList() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("ongoing");
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -410,13 +412,18 @@ export default function OrderList() {
                   </p>
                 </div>
                 <button
+                  onClick={() => {
+                    if (order.status === "IN_DELIVERY") {
+                      router.push(`/home/delivery?orderId=${order.id}`);
+                    }
+                  }}
                   style={{
                     padding: "10px 16px",
                     borderRadius: "8px",
                     border: "none",
                     fontSize: "13px",
                     fontWeight: "600",
-                    cursor: "pointer",
+                    cursor: order.status === "IN_DELIVERY" ? "pointer" : "default",
                     backgroundColor:
                       order.status === "COMPLETED"
                         ? "#0b57cf"

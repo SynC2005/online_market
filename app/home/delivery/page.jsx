@@ -1,15 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
-import { Menu, Truck, MapPin, Clock, Phone, CheckCircle } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Menu, Truck, MapPin, Clock, Phone, CheckCircle, ArrowLeft } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 
 export default function DeliveryPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get("orderId");
   const [activeDelivery, setActiveDelivery] = useState(0);
 
   const deliveries = [
     {
-      id: 1,
+      id: "#ORD-8921",
       orderId: "#ORD-8921",
       status: "In Transit",
       driver: "John Smith",
@@ -20,7 +24,7 @@ export default function DeliveryPage() {
       progress: 75,
     },
     {
-      id: 2,
+      id: "#ORD-8920",
       orderId: "#ORD-8920",
       status: "Out for Delivery",
       driver: "Sarah Johnson",
@@ -31,7 +35,7 @@ export default function DeliveryPage() {
       progress: 50,
     },
     {
-      id: 3,
+      id: "#ORD-8919",
       orderId: "#ORD-8919",
       status: "Delivered",
       driver: "Mike Wilson",
@@ -42,6 +46,16 @@ export default function DeliveryPage() {
       progress: 100,
     },
   ];
+
+  // If orderId is provided, filter to that order; otherwise show first
+  useEffect(() => {
+    if (orderId) {
+      const index = deliveries.findIndex((d) => d.id === orderId);
+      if (index !== -1) {
+        setActiveDelivery(index);
+      }
+    }
+  }, [orderId]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -73,8 +87,12 @@ export default function DeliveryPage() {
     <div className="app-container">
       {/* Header */}
       <header className="header">
-        <button className="icon-btn">
-          <Menu size={24} color="#0d47a1" />
+        <button
+          onClick={() => router.back()}
+          className="icon-btn"
+          style={{ display: "flex", alignItems: "center", gap: "8px" }}
+        >
+          <ArrowLeft size={24} color="#0d47a1" />
         </button>
         <h1 className="logo">Delivery Tracking</h1>
         <button className="icon-btn">
