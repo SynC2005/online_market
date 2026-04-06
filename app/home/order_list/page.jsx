@@ -1,8 +1,57 @@
 import React from 'react';
 import { Menu, ShoppingBag, Sparkles } from 'lucide-react';
-import BottomNav from '@/components/BottomNav'; // Sesuaikan path
+import BottomNav from '@/components/BottomNav';
+import OrderCard from '@/components/OrderCard';
 
 export default function OrderList() {
+  const orders = [
+    {
+      id: '#ORD-8921',
+      date: 'Oct 24, 2023 • 14:30 PM',
+      status: 'IN DELIVERY',
+      statusClass: 'in-delivery',
+      itemsTitle: 'Hass Avocado, Whole Milk...',
+      itemsCount: '4 items total',
+      items: [
+        { label: '🥑', bg: '#e5f3cc', zIndex: 3 },
+        { label: '🥛', bg: '#e0f2fe', zIndex: 2, overlap: true },
+        { label: '+2', bg: '#dbeafe', more: true, zIndex: 1, overlap: true },
+      ],
+      total: '$32.40',
+      buttonLabel: 'Track Order',
+      buttonClass: 'btn-primary',
+    },
+    {
+      id: '#ORD-8814',
+      date: 'Oct 21, 2023 • 09:15 AM',
+      status: 'COMPLETED',
+      statusClass: 'completed',
+      itemsTitle: 'Organic Bananas, Grocery Bundle',
+      itemsCount: '2 items total',
+      items: [
+        { label: '🍌', bg: '#fef08a', zIndex: 2 },
+        { label: '🍞', bg: '#ffedd5', zIndex: 1, overlap: true },
+      ],
+      total: '$18.90',
+      buttonLabel: 'Reorder',
+      buttonClass: 'btn-secondary',
+    },
+    {
+      id: '#ORD-8702',
+      date: 'Oct 18, 2023 • 18:45 PM',
+      status: 'CANCELLED',
+      statusClass: 'cancelled-badge',
+      itemsTitle: 'Dark Artisan Chocolates',
+      itemsCount: '1 item total',
+      items: [
+        { label: '🍫', bg: '#e5e7eb', zIndex: 1 },
+      ],
+      total: '$12.00',
+      buttonLabel: 'View Details',
+      buttonClass: 'btn-text',
+    },
+  ];
+
   return (
     <div className="app-container">
       {/* Header Khusus Halaman Order */}
@@ -20,108 +69,34 @@ export default function OrderList() {
 
       {/* Order List */}
       <div className="orders-wrapper">
-        
-        {/* Order 1: In Delivery */}
-        <div className="order-card">
-          <div className="order-header">
-            <div>
-              <p className="order-label">ORDER ID <span className="order-id">#ORD-8921</span></p>
-              <p className="order-date">Oct 24, 2023 • 14:30 PM</p>
-            </div>
-            <span className="badge-status in-delivery">IN DELIVERY</span>
-          </div>
-          
-          <div className="order-items">
-            <div className="item-images">
-              <div className="item-img" style={{backgroundColor: '#e5f3cc', zIndex: 3}}>🥑</div>
-              <div className="item-img" style={{backgroundColor: '#e0f2fe', zIndex: 2, marginLeft: '-12px'}}>🥛</div>
-              <div className="item-img more-count" style={{zIndex: 1, marginLeft: '-12px'}}>+2</div>
-            </div>
-            <div className="item-text">
-              <h4>Hass Avocado, Whole Milk...</h4>
-              <p>4 items total</p>
-            </div>
-          </div>
-
-          <div className="order-footer">
-            <div>
-              <p className="total-label">TOTAL AMOUNT</p>
-              <p className="total-price">$32.40</p>
-            </div>
-            <button className="btn-primary">Track Order</button>
-          </div>
-        </div>
-
-        {/* Order 2: Completed */}
-        <div className="order-card">
-          <div className="order-header">
-            <div>
-              <p className="order-label">ORDER ID <span className="order-id">#ORD-8814</span></p>
-              <p className="order-date">Oct 21, 2023 • 09:15 AM</p>
-            </div>
-            <span className="badge-status completed">COMPLETED</span>
-          </div>
-          
-          <div className="order-items">
-            <div className="item-images">
-              <div className="item-img" style={{backgroundColor: '#fef08a', zIndex: 2}}>🍌</div>
-              <div className="item-img" style={{backgroundColor: '#ffedd5', zIndex: 1, marginLeft: '-12px'}}>🍞</div>
-            </div>
-            <div className="item-text">
-              <h4>Organic Bananas, Grocery Bundle</h4>
-              <p>2 items total</p>
-            </div>
-          </div>
-
-          <div className="order-footer">
-            <div>
-              <p className="total-label">TOTAL AMOUNT</p>
-              <p className="total-price">$18.90</p>
-            </div>
-            <button className="btn-secondary">Reorder</button>
-          </div>
-        </div>
-
-        {/* Order 3: Cancelled */}
-        <div className="order-card cancelled">
-          <div className="order-header">
-            <div>
-              <p className="order-label">ORDER ID <span className="order-id">#ORD-8702</span></p>
-              <p className="order-date">Oct 18, 2023 • 18:45 PM</p>
-            </div>
-            <span className="badge-status cancelled-badge">CANCELLED</span>
-          </div>
-          
-          <div className="order-items">
-            <div className="item-images">
-              <div className="item-img grayscale" style={{backgroundColor: '#e5e7eb'}}>🍫</div>
-            </div>
-            <div className="item-text">
-              <h4>Dark Artisan Chocolates</h4>
-              <p>1 item total</p>
-            </div>
-          </div>
-
-          <div className="order-footer">
-            <div>
-              <p className="total-label">TOTAL AMOUNT</p>
-              <p className="total-price">$12.00</p>
-            </div>
-            <button className="btn-text">View Details</button>
-          </div>
-        </div>
-
+        {orders.map((order) => (
+          <OrderCard key={order.id} order={order} />
+        ))}
       </div>
 
-      {/* Restock Banner */}
       <section className="restock-banner">
         <span className="routine-badge">WEEKLY ROUTINE</span>
-        <h2>Restock your<br/>favorites?</h2>
+        <h2>
+          Restock your
+          <br />
+          favorites?
+        </h2>
         <p>Your frequent items are ready for a quick checkout.</p>
-        
-        <button className="btn-restock">
-          Order Fresh Milk & Bread
-        </button>
+
+        <button className="btn-restock">Order Fresh Milk & Bread</button>
+
+        <div className="restock-image-container">
+          <div className="sparkle-icon">
+            <Sparkles size={20} color="#5b21b6" />
+          </div>
+          <div className="restock-placeholder-img">🥖🥛</div>
+        </div>
+      </section>
+
+      <BottomNav />
+    </div>
+  );
+}
 
         <div className="restock-image-container">
            <div className="sparkle-icon"><Sparkles size={20} color="#5b21b6" /></div>
