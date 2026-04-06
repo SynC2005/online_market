@@ -58,7 +58,7 @@ export default function DeliveryPage() {
   // Compute activeDelivery based on orderId
   const activeDelivery = useMemo(() => {
     if (orderId) {
-      const index = deliveries.findIndex((d) => d.id === orderId);
+      const index = DELIVERIES.findIndex((d) => d.id === orderId);
       return index !== -1 ? index : 0;
     }
     return 0;

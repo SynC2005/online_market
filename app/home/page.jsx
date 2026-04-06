@@ -592,7 +592,7 @@ export default function FluidMarket() {
           </div>
         ) : (
           <p style={{ textAlign: "center", color: "#999", padding: "32px 0" }}>
-            No products found for "{searchQuery || selectedCategory}"
+            No products found for {`"${searchQuery || selectedCategory}"`}
           </p>
         )}
       </section>
