@@ -1,7 +1,13 @@
 import React from 'react';
 import { Heart, Plus } from 'lucide-react';
 
-export default function ProductCard({ image, category, name, price, description }) {
+export default function ProductCard({ id, image, category, name, price, description, onAddToCart }) {
+  const handleAddToCart = () => {
+    if (onAddToCart) {
+      onAddToCart({ id, name, price, image, category });
+    }
+  };
+
   return (
     <div className="product-card">
       {/* Gambar Asli */}
@@ -20,7 +26,7 @@ export default function ProductCard({ image, category, name, price, description 
         
         <div className="product-bottom">
           <span className="product-price">{price}</span>
-          <button className="add-btn">
+          <button className="add-btn" onClick={handleAddToCart}>
             <Plus size={20} color="white" />
           </button>
         </div>

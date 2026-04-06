@@ -45,7 +45,7 @@ export default function FluidMarket() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [favorites, setFavorites] = useState([]);
-  const [cartCount, setCartCount] = useState(0);
+  const [cartItems, setCartItems] = useState([]);
   const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
@@ -100,8 +100,18 @@ export default function FluidMarket() {
     );
   };
 
-  const addToCart = () => {
-    setCartCount((prev) => prev + 1);
+  const addToCart = (product) => {
+    setCartItems((prev) => {
+      const existingItem = prev.find((item) => item.id === product.id);
+      if (existingItem) {
+        return prev.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
   };
 
   return (
@@ -365,7 +375,7 @@ export default function FluidMarket() {
               size={24}
               style={{ cursor: "pointer", color: "#333" }}
             />
-            {cartCount > 0 && (
+            {cartItems.length > 0 && (
               <span
                 style={{
                   position: "absolute",
@@ -383,7 +393,7 @@ export default function FluidMarket() {
                   fontWeight: "bold",
                 }}
               >
-                {cartCount}
+                {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
               </span>
             )}
           </div>
@@ -562,6 +572,7 @@ export default function FluidMarket() {
                 name={product.name}
                 price={product.price}
                 description={product.description}
+                onAddToCart={addToCart}
               />
             ))}
           </div>
