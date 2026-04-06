@@ -19,6 +19,7 @@ export default function ProductCard({
   return (
     <div className="product-card">
       {/* Gambar Asli */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={image} alt={name} className="product-image-real" />
 
       <button className="fav-btn">

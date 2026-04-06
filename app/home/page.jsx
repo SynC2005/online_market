@@ -176,6 +176,7 @@ export default function FluidMarket() {
                     }}
                   >
                     {session.user?.image ? (
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={session.user.image}
                         alt="User"
@@ -704,6 +705,7 @@ export default function FluidMarket() {
                         }}
                       >
                         {/* Product Image */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={item.image}
                           alt={item.name}
