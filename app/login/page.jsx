@@ -9,9 +9,8 @@ export default function LoginPage() {
   
   // Fungsi untuk memicu Login via Keycloak
   const handleGoogleLogin = () => {
-    // Kita arahkan ke 'keycloak' (yang di dalamnya ada Google).
-    // callbackUrl berfungsi sama seperti redirectTo di Supabase.
-    signIn("keycloak", { callbackUrl: "/home" });
+    // Ubah callbackUrl menjadi "/" (root) agar Middleware bisa memilah rutenya
+    signIn("keycloak", { callbackUrl: "/" });
   };
 
   return (
