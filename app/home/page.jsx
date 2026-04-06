@@ -132,9 +132,10 @@ export default function FluidMarket() {
   };
 
   const cartTotal = cartItems.reduce((total, item) => {
-    const price = typeof item.price === "string" 
-      ? parseFloat(item.price.replace(/[^0-9.-]+/g, "")) 
-      : item.price;
+    const price =
+      typeof item.price === "string"
+        ? parseFloat(item.price.replace(/[^0-9.-]+/g, ""))
+        : item.price;
     return total + price * item.quantity;
   }, 0);
 
@@ -699,11 +700,18 @@ export default function FluidMarket() {
               }}
             >
               {cartItems.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  }}
+                >
                   {cartItems.map((item) => {
-                    const price = typeof item.price === "string" 
-                      ? parseFloat(item.price.replace(/[^0-9.-]+/g, "")) 
-                      : item.price;
+                    const price =
+                      typeof item.price === "string"
+                        ? parseFloat(item.price.replace(/[^0-9.-]+/g, ""))
+                        : item.price;
                     const itemTotal = price * item.quantity;
 
                     return (
@@ -731,11 +739,31 @@ export default function FluidMarket() {
                         />
 
                         {/* Product Info */}
-                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
-                          <h4 style={{ margin: 0, fontSize: "14px", fontWeight: "bold", color: "#333" }}>
+                        <div
+                          style={{
+                            flex: 1,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "8px",
+                          }}
+                        >
+                          <h4
+                            style={{
+                              margin: 0,
+                              fontSize: "14px",
+                              fontWeight: "bold",
+                              color: "#333",
+                            }}
+                          >
                             {item.name}
                           </h4>
-                          <p style={{ margin: 0, fontSize: "12px", color: "#666" }}>
+                          <p
+                            style={{
+                              margin: 0,
+                              fontSize: "12px",
+                              color: "#666",
+                            }}
+                          >
                             {item.price}
                           </p>
 
@@ -749,7 +777,12 @@ export default function FluidMarket() {
                             }}
                           >
                             <button
-                              onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
+                              onClick={() =>
+                                updateCartItemQuantity(
+                                  item.id,
+                                  item.quantity - 1,
+                                )
+                              }
                               style={{
                                 background: "#f0f0f0",
                                 border: "none",
@@ -763,11 +796,23 @@ export default function FluidMarket() {
                             >
                               −
                             </button>
-                            <span style={{ fontSize: "14px", fontWeight: "bold", minWidth: "20px", textAlign: "center" }}>
+                            <span
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "bold",
+                                minWidth: "20px",
+                                textAlign: "center",
+                              }}
+                            >
                               {item.quantity}
                             </span>
                             <button
-                              onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
+                              onClick={() =>
+                                updateCartItemQuantity(
+                                  item.id,
+                                  item.quantity + 1,
+                                )
+                              }
                               style={{
                                 background: "#f0f0f0",
                                 border: "none",
@@ -781,7 +826,14 @@ export default function FluidMarket() {
                             >
                               +
                             </button>
-                            <span style={{ marginLeft: "auto", fontSize: "12px", fontWeight: "bold", color: "#0b57cf" }}>
+                            <span
+                              style={{
+                                marginLeft: "auto",
+                                fontSize: "12px",
+                                fontWeight: "bold",
+                                color: "#0b57cf",
+                              }}
+                            >
                               Rp {itemTotal.toLocaleString("id-ID")}
                             </span>
                           </div>
@@ -807,9 +859,19 @@ export default function FluidMarket() {
                   })}
                 </div>
               ) : (
-                <div style={{ textAlign: "center", padding: "32px 16px", color: "#999" }}>
-                  <p style={{ fontSize: "14px", marginBottom: "8px" }}>Your cart is empty</p>
-                  <p style={{ fontSize: "12px", opacity: 0.8 }}>Add products to get started</p>
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "32px 16px",
+                    color: "#999",
+                  }}
+                >
+                  <p style={{ fontSize: "14px", marginBottom: "8px" }}>
+                    Your cart is empty
+                  </p>
+                  <p style={{ fontSize: "12px", opacity: 0.8 }}>
+                    Add products to get started
+                  </p>
                 </div>
               )}
             </div>
@@ -826,15 +888,29 @@ export default function FluidMarket() {
                   backgroundColor: "#f9f9f9",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "14px",
+                  }}
+                >
                   <span style={{ color: "#666" }}>Subtotal:</span>
                   <span style={{ fontWeight: "bold", color: "#333" }}>
                     Rp {cartTotal.toLocaleString("id-ID")}
                   </span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "14px",
+                  }}
+                >
                   <span style={{ color: "#666" }}>Shipping:</span>
-                  <span style={{ fontWeight: "bold", color: "#333" }}>Free</span>
+                  <span style={{ fontWeight: "bold", color: "#333" }}>
+                    Free
+                  </span>
                 </div>
                 <div
                   style={{
