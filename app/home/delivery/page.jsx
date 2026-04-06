@@ -1,15 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Menu, Truck, MapPin, Clock, Phone, CheckCircle, ArrowLeft } from "lucide-react";
+import {
+  Truck,
+  MapPin,
+  Clock,
+  Phone,
+  CheckCircle,
+  ArrowLeft,
+} from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 
 export default function DeliveryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
-  const [activeDelivery, setActiveDelivery] = useState(0);
 
   const deliveries = [
     {
@@ -47,14 +53,13 @@ export default function DeliveryPage() {
     },
   ];
 
-  // If orderId is provided, filter to that order; otherwise show first
-  useEffect(() => {
+  // Compute activeDelivery based on orderId
+  const activeDelivery = useMemo(() => {
     if (orderId) {
       const index = deliveries.findIndex((d) => d.id === orderId);
-      if (index !== -1) {
-        setActiveDelivery(index);
-      }
+      return index !== -1 ? index : 0;
     }
+    return 0;
   }, [orderId]);
 
   const getStatusColor = (status) => {

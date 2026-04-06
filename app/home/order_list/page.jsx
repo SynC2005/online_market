@@ -107,7 +107,7 @@ export default function OrderList() {
         // No orders in database, use sample data
         setOrders(sampleOrdersData);
       }
-    } catch (error) {
+    } catch (_error) {
       // Silently fail and use sample data
       setOrders(sampleOrdersData);
     } finally {
@@ -423,7 +423,8 @@ export default function OrderList() {
                     border: "none",
                     fontSize: "13px",
                     fontWeight: "600",
-                    cursor: order.status === "IN_DELIVERY" ? "pointer" : "default",
+                    cursor:
+                      order.status === "IN_DELIVERY" ? "pointer" : "default",
                     backgroundColor:
                       order.status === "COMPLETED"
                         ? "#0b57cf"

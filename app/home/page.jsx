@@ -5,18 +5,7 @@ import {
   Menu,
   ShoppingCart,
   Search,
-  Flame,
-  Leaf,
-  Egg,
-  Apple,
-  Croissant,
-  Fish,
-  Wine,
-  IceCream,
-  Brush,
-  MoreHorizontal,
   Filter,
-  Truck,
   Heart,
   X,
   LogOut,
@@ -44,7 +33,6 @@ export default function FluidMarket() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [favorites, setFavorites] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [showMenu, setShowMenu] = useState(false);
   const [showCart, setShowCart] = useState(false);
@@ -54,24 +42,7 @@ export default function FluidMarket() {
   }, []);
 
   useEffect(() => {
-    filterProducts();
-  }, [products, searchQuery, selectedCategory]);
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.from("products").select("*");
-
-      if (error) throw error;
-      if (data) setProducts(data);
-    } catch (error) {
-      console.error("Error fetching products:", error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterProducts = () => {
+    // Filter products based on search query and category
     let filtered = products;
 
     // Filter by search query
@@ -91,14 +62,20 @@ export default function FluidMarket() {
     }
 
     setFilteredProducts(filtered);
-  };
+  }, [products, searchQuery, selectedCategory]);
 
-  const toggleFavorite = (productId) => {
-    setFavorites((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId],
-    );
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from("products").select("*");
+
+      if (error) throw error;
+      if (data) setProducts(data);
+    } catch (error) {
+      console.error("Error fetching products:", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const addToCart = (product) => {

@@ -15,7 +15,8 @@ export default function Home() {
     if (!session) {
       router.push("/login");
     } else {
-      const isAdmin = session.user?.roles?.includes("admin");
+      const isAdmin =
+        (session.user as any)?.roles?.includes("admin") ?? false;
       router.push(isAdmin ? "/admin" : "/home");
     }
   }, [session, status, router]);
