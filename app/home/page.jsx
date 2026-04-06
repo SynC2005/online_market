@@ -175,8 +175,8 @@ export default function FluidMarket() {
                       marginBottom: "8px",
                     }}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     {session.user?.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={session.user.image}
                         alt="User"
