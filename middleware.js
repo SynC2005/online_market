@@ -18,8 +18,8 @@ export async function middleware(req) {
 
   // Logika Redirect dari halaman utama "/"
   if (pathname === "/") {
-    return isAdmin 
-      ? NextResponse.redirect(new URL("/admin", req.url)) 
+    return isAdmin
+      ? NextResponse.redirect(new URL("/admin", req.url))
       : NextResponse.redirect(new URL("/home", req.url));
   }
 
@@ -33,4 +33,5 @@ export async function middleware(req) {
 
 export const config = {
   matcher: ["/", "/admin/:path*", "/home/:path*", "/login"],
+  // Using matcher instead of deprecated runtime config
 };
