@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Truck,
@@ -12,46 +12,48 @@ import {
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 
+const DELIVERIES = [
+  {
+    id: "#ORD-8921",
+    orderId: "#ORD-8921",
+    status: "In Transit",
+    driver: "John Smith",
+    phone: "+1-555-123-4567",
+    eta: "15 mins away",
+    items: "4 items",
+    location: "2.5 km away",
+    progress: 75,
+  },
+  {
+    id: "#ORD-8920",
+    orderId: "#ORD-8920",
+    status: "Out for Delivery",
+    driver: "Sarah Johnson",
+    phone: "+1-555-987-6543",
+    eta: "30 mins away",
+    items: "3 items",
+    location: "5.2 km away",
+    progress: 50,
+  },
+  {
+    id: "#ORD-8919",
+    orderId: "#ORD-8919",
+    status: "Delivered",
+    driver: "Mike Wilson",
+    phone: "+1-555-456-7890",
+    eta: "Delivered",
+    items: "5 items",
+    location: "Delivered",
+    progress: 100,
+  },
+];
+
 export default function DeliveryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
-  const deliveries = [
-    {
-      id: "#ORD-8921",
-      orderId: "#ORD-8921",
-      status: "In Transit",
-      driver: "John Smith",
-      phone: "+1-555-123-4567",
-      eta: "15 mins away",
-      items: "4 items",
-      location: "2.5 km away",
-      progress: 75,
-    },
-    {
-      id: "#ORD-8920",
-      orderId: "#ORD-8920",
-      status: "Out for Delivery",
-      driver: "Sarah Johnson",
-      phone: "+1-555-987-6543",
-      eta: "30 mins away",
-      items: "3 items",
-      location: "5.2 km away",
-      progress: 50,
-    },
-    {
-      id: "#ORD-8919",
-      orderId: "#ORD-8919",
-      status: "Delivered",
-      driver: "Mike Wilson",
-      phone: "+1-555-456-7890",
-      eta: "Delivered",
-      items: "5 items",
-      location: "Delivered",
-      progress: 100,
-    },
-  ];
+  const deliveries = DELIVERIES;
 
   // Compute activeDelivery based on orderId
   const activeDelivery = useMemo(() => {

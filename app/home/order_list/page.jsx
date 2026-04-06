@@ -107,7 +107,7 @@ export default function OrderList() {
         // No orders in database, use sample data
         setOrders(sampleOrdersData);
       }
-    } catch (_error) {
+    } catch {
       // Silently fail and use sample data
       setOrders(sampleOrdersData);
     } finally {

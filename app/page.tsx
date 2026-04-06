@@ -15,8 +15,9 @@ export default function Home() {
     if (!session) {
       router.push("/login");
     } else {
-      const isAdmin =
-        (session.user as any)?.roles?.includes("admin") ?? false;
+      // Check if user has admin role (default to false if not present)
+      const userRoles = (session.user as { roles?: string[] })?.roles ?? [];
+      const isAdmin = userRoles.includes("admin");
       router.push(isAdmin ? "/admin" : "/home");
     }
   }, [session, status, router]);
