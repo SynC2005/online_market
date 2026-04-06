@@ -13,7 +13,7 @@ export default function LoginPage() {
       provider: 'google',
       options: {
         // Arahkan kembali ke halaman Home setelah login berhasil
-        redirectTo: 'https://online-market-delta.vercel.app/home', 
+        redirectTo: `${window.location.origin}/home`,
       },
     });
 

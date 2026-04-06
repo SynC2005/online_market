@@ -30,15 +30,16 @@ export default function AddProduct() {
   const handleSubmit = async (e) => {
     e.preventDefault(); 
     
-    // 2. TAMBAHKAN VALIDASI KATEGORI
-    if (!formData.name || !formData.price || !formData.image || !formData.category) {
-      alert('Nama, Kategori, Harga, dan URL Gambar wajib diisi!');
+    // 1. Tambahkan pengecekan formData.quantity pada validasi
+    if (!formData.name || !formData.price || !formData.image || !formData.category || !formData.quantity) {
+      alert('Nama, Kategori, Harga, Stok, dan URL Gambar wajib diisi!');
       return;
     }
 
     try {
       setLoading(true);
       
+      // 2. Tambahkan quantity ke dalam payload insert
       const { error } = await supabase
         .from('products')
         .insert([
@@ -46,6 +47,7 @@ export default function AddProduct() {
             name: formData.name,
             category: formData.category,
             price: formData.price,
+            quantity: parseInt(formData.quantity, 10), // <-- MENGUBAH STRING INPUT MENJADI ANGKA (INTEGER)
             description: formData.description,
             image: formData.image
           }
