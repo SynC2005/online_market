@@ -3,34 +3,32 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Save, Image as ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/utils/supabase';
+
+// IMPORT Server Action yang baru dibuat
+import { addProductBackend } from '@/app/actions/productActions';
 
 export default function AddProduct() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   
-  // 1. UBAH DEFAULT KATEGORI: Jadikan string kosong ('')
   const [formData, setFormData] = useState({
     name: '',
     category: '', 
     price: '',
+    quantity: '', // Tambahkan state quantity agar tidak error undefined
     description: '',
     image: ''
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Mengubah kategori menjadi huruf kapital semua (opsional, agar seragam di database)
-    // Jika ingin bebas besar kecilnya, hapus .toUpperCase() di bawah ini
     const finalValue = name === 'category' ? value.toUpperCase() : value;
-    
     setFormData({ ...formData, [name]: finalValue });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault(); 
     
-    // 1. Tambahkan pengecekan formData.quantity pada validasi
     if (!formData.name || !formData.price || !formData.image || !formData.category || !formData.quantity) {
       alert('Nama, Kategori, Harga, Stok, dan URL Gambar wajib diisi!');
       return;
@@ -39,28 +37,19 @@ export default function AddProduct() {
     try {
       setLoading(true);
       
-      // 2. Tambahkan quantity ke dalam payload insert
-      const { error } = await supabase
-        .from('products')
-        .insert([
-          {
-            name: formData.name,
-            category: formData.category,
-            price: formData.price,
-            quantity: parseInt(formData.quantity, 10), // <-- MENGUBAH STRING INPUT MENJADI ANGKA (INTEGER)
-            description: formData.description,
-            image: formData.image
-          }
-        ]);
+      // MEMANGGIL LOGIKA BACKEND (Sangat Aman)
+      const result = await addProductBackend(formData);
 
-      if (error) throw error;
-
-      alert('Produk berhasil ditambahkan!');
-      router.push('/admin/products'); 
+      if (result.success) {
+        alert('✅ Produk berhasil ditambahkan!');
+        router.push('/admin/products'); 
+      } else {
+        alert('❌ Gagal: ' + result.message);
+      }
       
     } catch (error) {
-      console.error('Error adding product:', error.message);
-      alert('Gagal menambahkan produk: ' + error.message);
+      console.error('Error adding product:', error);
+      alert('Terjadi kesalahan sistem.');
     } finally {
       setLoading(false);
     }
@@ -85,6 +74,7 @@ export default function AddProduct() {
           <label>URL Gambar Produk *</label>
           <div className="image-preview-box">
             {formData.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={formData.image} alt="Preview" className="preview-img" />
             ) : (
               <div className="placeholder-img">
@@ -116,7 +106,7 @@ export default function AddProduct() {
           />
         </div>
 
-        {/* 3. INPUT KATEGORI: Diubah menjadi input text biasa */}
+        {/* Input Kategori */}
         <div className="form-group">
           <label>Kategori *</label>
           <input 
@@ -138,6 +128,19 @@ export default function AddProduct() {
             value={formData.price}
             onChange={handleChange}
             placeholder="cth: Rp 15.000" 
+            className="form-input"
+          />
+        </div>
+
+        {/* Input Stok (Quantity) - Tambahan agar sesuai dengan validasi Anda */}
+        <div className="form-group">
+          <label>Stok Produk *</label>
+          <input 
+            type="number" 
+            name="quantity"
+            value={formData.quantity}
+            onChange={handleChange}
+            placeholder="cth: 50" 
             className="form-input"
           />
         </div>

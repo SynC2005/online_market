@@ -10,13 +10,15 @@ import {
   X,
   LogOut,
   User,
-  MapPin, // Import icon tambahan untuk lokasi
+  MapPin,
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
 import BottomNav from "@/components/BottomNav";
 import ProductCard from "@/components/ProductCard";
 import { supabase } from "@/utils/supabase";
+import { processCheckoutBackend } from "@/app/actions/orderActions";
+import { useRouter } from "next/navigation";
 
 const CATEGORIES = [
   { id: "all", label: "All", icon: "🛍️" },
@@ -28,6 +30,7 @@ const CATEGORIES = [
 ];
 
 export default function FluidMarket() {
+  const router = useRouter();
   const { data: session } = useSession();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -38,13 +41,13 @@ export default function FluidMarket() {
   const [showMenu, setShowMenu] = useState(false);
   const [showCart, setShowCart] = useState(false);
 
-  // State untuk Checkout & Profil (Ditambah location_link)
+  // State untuk Checkout & Profil
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
   const [formData, setFormData] = useState({
     phone: "",
     address: "",
-    location_link: "", // Field baru untuk GMaps
+    location_link: "",
   });
 
   useEffect(() => {
@@ -122,7 +125,6 @@ export default function FluidMarket() {
     return total + price * item.quantity;
   }, 0);
 
-  // --- LOGIKA CHECKOUT DENGAN GMAPS ---
   const handleCheckoutClick = async () => {
     if (!session?.user?.email) {
       alert("Silakan login terlebih dahulu!");
@@ -136,7 +138,6 @@ export default function FluidMarket() {
         .eq("email", session.user.email)
         .single();
 
-      // Cek apakah alamat, HP, atau Link GMaps masih kosong
       if (error || !profile || !profile.address || !profile.phone || !profile.location_link) {
         setShowProfileForm(true);
       } else {
@@ -160,25 +161,33 @@ export default function FluidMarket() {
           full_name: session.user.name,
           phone: formData.phone,
           address: formData.address,
-          location_link: formData.location_link, // Simpan ke Supabase
+          location_link: formData.location_link,
           role: "user",
         }, { onConflict: "email" });
 
       if (error) throw error;
-      alert("Data berhasil disimpan!");
       setShowProfileForm(false);
       processOrder({ ...formData, email: session.user.email });
     } catch (err) {
       alert("Gagal menyimpan: " + err.message);
-    } finally {
       setIsLoadingCheckout(false);
     }
   };
 
   const processOrder = async (userProfile) => {
-    alert(`Pesanan diproses!\nLokasi GMaps: ${userProfile.location_link}`);
-    setCartItems([]);
-    setShowCart(false);
+    setIsLoadingCheckout(true);
+    
+    const result = await processCheckoutBackend(session.user.email, cartItems);
+
+    if (result.success) {
+      alert(`✅ Pesanan Berhasil!\nID: ${result.orderId}\nDikirim ke: ${userProfile.address}\n\nDriver akan segera mengantar pesanan Anda!`);
+      setCartItems([]);
+      setShowCart(false);
+    } else {
+      alert(`❌ Gagal memproses pesanan: ${result.message}`);
+    }
+    
+    setIsLoadingCheckout(false);
   };
 
   return (
@@ -208,7 +217,15 @@ export default function FluidMarket() {
                 </div>
               )}
               <div className="fm-menu-items-container">
-                <button onClick={() => setShowMenu(false)} className="fm-menu-btn"><User size={18} /> My Profile</button>
+                <button 
+  onClick={() => {
+    setShowMenu(false);
+    router.push('/home/profile'); // Menuju ke halaman profil
+  }} 
+  className="fm-menu-btn"
+>
+  <User size={18} /> My Profile
+</button>
                 <button onClick={() => setShowMenu(false)} className="fm-menu-btn"><ShoppingCart size={18} /> My Orders</button>
                 <button onClick={() => setShowMenu(false)} className="fm-menu-btn"><Heart size={18} /> Favorites</button>
                 <div className="fm-menu-divider" />
@@ -230,7 +247,7 @@ export default function FluidMarket() {
         </div>
       </header>
 
-      {/* Konten Utama (Singkat) */}
+      {/* Konten Utama */}
       <section className="fm-promo-banner">
         <h2 className="fm-promo-title">Flash Sale!</h2>
         <button className="fm-promo-btn">Shop Now</button>
@@ -265,7 +282,7 @@ export default function FluidMarket() {
               <div className="cart-footer">
                 <p>Total: Rp {cartTotal.toLocaleString("id-ID")}</p>
                 <button onClick={handleCheckoutClick} disabled={isLoadingCheckout} className="cart-checkout-btn">
-                  {isLoadingCheckout ? "Memproses..." : "Proceed to Checkout"}
+                  {isLoadingCheckout ? "Memproses Keamanan..." : "Proceed to Checkout"}
                 </button>
               </div>
             )}
@@ -275,52 +292,76 @@ export default function FluidMarket() {
 
       {/* MODAL FORM PROFIL + GMAPS */}
       {showProfileForm && (
-        <div className="cart-backdrop" style={{ display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1100 }}>
-          <div style={{ background: "white", padding: "24px", borderRadius: "16px", width: "90%", maxWidth: "400px" }}>
-            <h3 style={{ marginBottom: "8px" }}>Lengkapi Data Pengiriman</h3>
-            <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "20px" }}>Driver membutuhkan lokasi akurat agar barang cepat sampai.</p>
+        <div className="cart-backdrop profile-modal-overlay">
+          <div className="profile-modal-box">
+            <h3 className="profile-modal-title">Lengkapi Data Pengiriman</h3>
+            <p className="profile-modal-desc">
+              Driver membutuhkan lokasi akurat agar barang cepat sampai.
+            </p>
             
             <form onSubmit={saveProfileAndCheckout}>
+              
               {/* Input Nomor HP */}
-              <div style={{ marginBottom: "16px" }}>
-                <label style={{ fontSize: "12px", fontWeight: "bold" }}>Nomor WhatsApp</label>
+              <div className="form-group">
+                <label className="form-label">Nomor WhatsApp</label>
                 <input 
-                  type="text" required placeholder="0812..." 
+                  type="text" 
+                  required 
+                  placeholder="0812..." 
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc", marginTop: "4px" }}
+                  className="form-input"
                 />
               </div>
 
               {/* Input Alamat */}
-              <div style={{ marginBottom: "16px" }}>
-                <label style={{ fontSize: "12px", fontWeight: "bold" }}>Alamat Lengkap</label>
+              <div className="form-group">
+                <label className="form-label">Alamat Lengkap</label>
                 <textarea 
-                  required placeholder="Jl. Raya No. 1..." 
+                  required 
+                  rows="3"
+                  placeholder="Jl. Raya No. 1..." 
                   value={formData.address}
                   onChange={(e) => setFormData({...formData, address: e.target.value})}
-                  style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc", marginTop: "4px" }}
+                  className="form-input"
                 />
               </div>
 
               {/* Input Link GMaps */}
-              <div style={{ marginBottom: "24px" }}>
-                <label style={{ fontSize: "12px", fontWeight: "bold", display: "flex", alignItems: "center", gap: "4px" }}>
+              <div className="form-group-last">
+                <label className="form-label form-label-icon">
                   <MapPin size={14} color="#ef4444" /> Link Lokasi Google Maps
                 </label>
                 <input 
-                  type="url" required 
-                  placeholder="https://maps.app.goo.gl/..." 
+                  type="url" 
+                  required 
+                  placeholder="https://maps.google.com/..." 
                   value={formData.location_link}
                   onChange={(e) => setFormData({...formData, location_link: e.target.value})}
-                  style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc", marginTop: "4px" }}
+                  className="form-input"
                 />
-                <small style={{ fontSize: "11px", color: "#94a3b8" }}>Buka Google Maps, cari lokasi Anda, lalu klik "Share" dan salin linknya.</small>
+                <small className="form-hint">
+                  Buka Google Maps, cari lokasi Anda, lalu klik "Share" dan salin linknya.
+                </small>
               </div>
 
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button type="button" onClick={() => setShowProfileForm(false)} style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}>Batal</button>
-                <button type="submit" style={{ flex: 1, padding: "10px", borderRadius: "8px", background: "#0b57cf", color: "white", border: "none" }}>Simpan & Checkout</button>
+              {/* Buttons */}
+              <div className="form-actions">
+                <button 
+                  type="button" 
+                  disabled={isLoadingCheckout} 
+                  onClick={() => setShowProfileForm(false)} 
+                  className="btn-cancel"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isLoadingCheckout} 
+                  className="btn-submit"
+                >
+                  {isLoadingCheckout ? "Menyimpan..." : "Simpan & Checkout"}
+                </button>
               </div>
             </form>
           </div>
