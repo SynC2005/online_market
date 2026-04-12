@@ -14,7 +14,7 @@ const handler = NextAuth({
       },
       authorization: {
         params: {
-          prompt: "select_account",
+          prompt: "login",
           kc_idp_hint: "google",
         },
       },
