@@ -42,22 +42,19 @@ export default function FluidMarket() {
   }, []);
 
   useEffect(() => {
-    // Filter products based on search query and category
     let filtered = products;
 
-    // Filter by search query
     if (searchQuery.trim()) {
       filtered = filtered.filter(
         (p) =>
           p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+          p.description?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Filter by category
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
-        (p) => p.category?.toLowerCase() === selectedCategory.toLowerCase(),
+        (p) => p.category?.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
 
@@ -85,7 +82,7 @@ export default function FluidMarket() {
         return prev.map((item) =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
-            : item,
+            : item
         );
       }
       return [...prev, { ...product, quantity: 1 }];
@@ -98,8 +95,8 @@ export default function FluidMarket() {
     } else {
       setCartItems((prev) =>
         prev.map((item) =>
-          item.id === productId ? { ...item, quantity: newQuantity } : item,
-        ),
+          item.id === productId ? { ...item, quantity: newQuantity } : item
+        )
       );
     }
   };
@@ -119,295 +116,78 @@ export default function FluidMarket() {
   return (
     <div className="app-container">
       {/* Header */}
-      <header style={{ padding: "16px 16px 0", paddingTop: "12px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "16px",
-            position: "relative",
-          }}
-        >
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: "0",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Menu size={24} style={{ color: "#333" }} />
+      <header className="fm-header">
+        <div className="fm-header-top">
+          <button onClick={() => setShowMenu(!showMenu)} className="fm-icon-btn">
+            <Menu size={24} color="#333" />
           </button>
 
           {/* User Menu Dropdown */}
           {showMenu && (
-            <div
-              style={{
-                position: "absolute",
-                top: "50px",
-                left: "0",
-                backgroundColor: "white",
-                borderRadius: "12px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                zIndex: 1000,
-                minWidth: "250px",
-                overflow: "hidden",
-              }}
-            >
+            <div className="fm-user-menu">
               {/* User Info */}
               {session && (
-                <div
-                  style={{
-                    padding: "16px",
-                    borderBottom: "1px solid #e0e0e0",
-                    backgroundColor: "#f9f9f9",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                      marginBottom: "8px",
-                    }}
-                  >
+                <div className="fm-user-info">
+                  <div className="fm-user-info-flex">
                     {session.user?.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
+                      /* eslint-disable-next-line @next/next/no-img-element */
                       <img
                         src={session.user.image}
                         alt="User"
-                        style={{
-                          width: "48px",
-                          height: "48px",
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                        }}
+                        className="fm-avatar"
                       />
                     ) : (
-                      <div
-                        style={{
-                          width: "48px",
-                          height: "48px",
-                          borderRadius: "50%",
-                          backgroundColor: "#0b57cf",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "white",
-                          fontSize: "20px",
-                        }}
-                      >
+                      <div className="fm-avatar-placeholder">
                         <User size={24} />
                       </div>
                     )}
                     <div>
-                      <p
-                        style={{
-                          fontWeight: "bold",
-                          color: "#333",
-                          margin: "0 0 4px 0",
-                          fontSize: "14px",
-                        }}
-                      >
+                      <p className="fm-user-name">
                         {session.user?.name || "User"}
                       </p>
-                      <p
-                        style={{
-                          color: "#999",
-                          margin: "0",
-                          fontSize: "12px",
-                        }}
-                      >
-                        {session.user?.email}
-                      </p>
+                      <p className="fm-user-email">{session.user?.email}</p>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Menu Items */}
-              <div style={{ padding: "8px 0" }}>
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                  }}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    padding: "12px 16px",
-                    border: "none",
-                    backgroundColor: "transparent",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    color: "#333",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    transition: "background-color 0.2s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.target.style.backgroundColor = "#f0f0f0")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.target.style.backgroundColor = "transparent")
-                  }
-                >
-                  <User size={18} />
-                  My Profile
+              <div className="fm-menu-items-container">
+                <button onClick={() => setShowMenu(false)} className="fm-menu-btn">
+                  <User size={18} /> My Profile
+                </button>
+                <button onClick={() => setShowMenu(false)} className="fm-menu-btn">
+                  <ShoppingCart size={18} /> My Orders
+                </button>
+                <button onClick={() => setShowMenu(false)} className="fm-menu-btn">
+                  <Heart size={18} /> Favorites
                 </button>
 
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                  }}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    padding: "12px 16px",
-                    border: "none",
-                    backgroundColor: "transparent",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    color: "#333",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    transition: "background-color 0.2s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.target.style.backgroundColor = "#f0f0f0")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.target.style.backgroundColor = "transparent")
-                  }
-                >
-                  <ShoppingCart size={18} />
-                  My Orders
-                </button>
-
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                  }}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    padding: "12px 16px",
-                    border: "none",
-                    backgroundColor: "transparent",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    color: "#333",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    transition: "background-color 0.2s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.target.style.backgroundColor = "#f0f0f0")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.target.style.backgroundColor = "transparent")
-                  }
-                >
-                  <Heart size={18} />
-                  Favorites
-                </button>
-
-                <div
-                  style={{
-                    borderTop: "1px solid #e0e0e0",
-                    margin: "8px 0",
-                  }}
-                />
+                <div className="fm-menu-divider" />
 
                 <button
                   onClick={() => signOut({ redirect: true, callbackUrl: "/" })}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    padding: "12px 16px",
-                    border: "none",
-                    backgroundColor: "transparent",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    color: "#ff6b6b",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    transition: "background-color 0.2s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.target.style.backgroundColor = "#fff0f0")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.target.style.backgroundColor = "transparent")
-                  }
+                  className="fm-logout-btn"
                 >
-                  <LogOut size={18} />
-                  Logout
+                  <LogOut size={18} /> Logout
                 </button>
               </div>
             </div>
           )}
 
-          {/* Close menu when clicking outside */}
+          {/* Close menu backdrop */}
           {showMenu && (
-            <div
-              onClick={() => setShowMenu(false)}
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 999,
-              }}
-            />
+            <div onClick={() => setShowMenu(false)} className="fm-menu-backdrop" />
           )}
 
-          <h1 style={{ fontSize: "20px", fontWeight: "bold", color: "#333" }}>
-            Fluid Market
-          </h1>
+          <h1 className="fm-logo">Fluid Market</h1>
+
           <div style={{ position: "relative" }}>
-            <button
-              onClick={() => setShowCart(!showCart)}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "0",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <ShoppingCart
-                size={24}
-                style={{ cursor: "pointer", color: "#333" }}
-              />
+            <button onClick={() => setShowCart(!showCart)} className="fm-icon-btn">
+              <ShoppingCart size={24} color="#333" />
             </button>
             {cartItems.length > 0 && (
-              <span
-                style={{
-                  position: "absolute",
-                  top: "-8px",
-                  right: "-8px",
-                  backgroundColor: "#ff6b6b",
-                  color: "white",
-                  borderRadius: "50%",
-                  width: "20px",
-                  height: "20px",
-                  fontSize: "12px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: "bold",
-                }}
-              >
+              <span className="fm-cart-badge">
                 {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
               </span>
             )}
@@ -415,36 +195,20 @@ export default function FluidMarket() {
         </div>
 
         {/* Search Bar */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            backgroundColor: "#f0f0f0",
-            borderRadius: "24px",
-            padding: "10px 16px",
-            marginBottom: "16px",
-            gap: "8px",
-          }}
-        >
-          <Search size={18} style={{ color: "#999" }} />
+        <div className="fm-search-container">
+          <Search size={18} color="#999" />
           <input
             type="text"
             placeholder="Search products..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              flex: 1,
-              border: "none",
-              backgroundColor: "transparent",
-              fontSize: "14px",
-              outline: "none",
-              color: "#333",
-            }}
+            className="fm-search-input"
           />
           {searchQuery && (
             <X
               size={18}
-              style={{ cursor: "pointer", color: "#999" }}
+              color="#999"
+              style={{ cursor: "pointer" }}
               onClick={() => setSearchQuery("")}
             />
           )}
@@ -452,83 +216,24 @@ export default function FluidMarket() {
       </header>
 
       {/* Promo Banner */}
-      <section
-        style={{
-          backgroundColor: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          backgroundImage: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          borderRadius: "16px",
-          padding: "24px 16px",
-          margin: "16px",
-          color: "white",
-          textAlign: "center",
-        }}
-      >
+      <section className="fm-promo-banner">
         <div style={{ fontSize: "32px", marginBottom: "8px" }}>🎉</div>
-        <h2
-          style={{ fontSize: "20px", fontWeight: "bold", marginBottom: "8px" }}
-        >
-          Flash Sale!
-        </h2>
-        <p style={{ fontSize: "14px", opacity: 0.9, marginBottom: "12px" }}>
-          Get up to 50% off on selected items
-        </p>
-        <button
-          style={{
-            backgroundColor: "white",
-            color: "#667eea",
-            border: "none",
-            padding: "10px 24px",
-            borderRadius: "20px",
-            fontWeight: "bold",
-            cursor: "pointer",
-            fontSize: "14px",
-          }}
-        >
-          Shop Now
-        </button>
+        <h2 className="fm-promo-title">Flash Sale!</h2>
+        <p className="fm-promo-desc">Get up to 50% off on selected items</p>
+        <button className="fm-promo-btn">Shop Now</button>
       </section>
 
       {/* Category Filter */}
-      <section style={{ padding: "0 16px", marginBottom: "16px" }}>
-        <h3
-          style={{
-            fontSize: "14px",
-            fontWeight: "600",
-            color: "#666",
-            marginBottom: "12px",
-          }}
-        >
-          Categories
-        </h3>
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-            overflowX: "auto",
-            paddingBottom: "8px",
-            scrollBehavior: "smooth",
-          }}
-        >
+      <section className="fm-section">
+        <h3 className="fm-section-title">Categories</h3>
+        <div className="fm-category-scroll">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "8px 16px",
-                borderRadius: "20px",
-                border: "none",
-                backgroundColor:
-                  selectedCategory === cat.id ? "#0b57cf" : "#f0f0f0",
-                color: selectedCategory === cat.id ? "white" : "#333",
-                cursor: "pointer",
-                fontSize: "13px",
-                fontWeight: "500",
-                whiteSpace: "nowrap",
-                transition: "all 0.3s ease",
-              }}
+              className={`fm-category-btn ${
+                selectedCategory === cat.id ? "active" : "inactive"
+              }`}
             >
               <span>{cat.icon}</span>
               {cat.label}
@@ -538,46 +243,22 @@ export default function FluidMarket() {
       </section>
 
       {/* Popular Products Section */}
-      <section style={{ padding: "0 16px", marginBottom: "80px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "16px",
-          }}
-        >
-          <h2 style={{ fontSize: "18px", fontWeight: "bold", color: "#333" }}>
+      <section className="fm-products-section">
+        <div className="fm-products-header">
+          <h2 className="fm-products-title">
             {selectedCategory === "all"
               ? "All Products"
               : CATEGORIES.find((c) => c.id === selectedCategory)?.label}
           </h2>
-          <button
-            style={{
-              backgroundColor: "#f0f0f0",
-              border: "none",
-              padding: "8px 8px",
-              borderRadius: "8px",
-              cursor: "pointer",
-              color: "#333",
-            }}
-          >
+          <button className="fm-filter-btn">
             <Filter size={16} />
           </button>
         </div>
 
         {loading ? (
-          <p style={{ textAlign: "center", color: "#999", padding: "32px 0" }}>
-            Loading products...
-          </p>
+          <p className="fm-empty-state">Loading products...</p>
         ) : filteredProducts.length > 0 ? (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: "12px",
-            }}
-          >
+          <div className="fm-products-grid">
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
@@ -592,7 +273,7 @@ export default function FluidMarket() {
             ))}
           </div>
         ) : (
-          <p style={{ textAlign: "center", color: "#999", padding: "32px 0" }}>
+          <p className="fm-empty-state">
             No products found for {`"${searchQuery || selectedCategory}"`}
           </p>
         )}
@@ -601,90 +282,19 @@ export default function FluidMarket() {
       {/* Cart Modal */}
       {showCart && (
         <>
-          {/* Backdrop */}
-          <div
-            onClick={() => setShowCart(false)}
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              zIndex: 1001,
-            }}
-          />
+          <div onClick={() => setShowCart(false)} className="cart-backdrop" />
 
-          {/* Cart Sidebar */}
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              right: 0,
-              width: "100%",
-              maxWidth: "400px",
-              height: "100vh",
-              backgroundColor: "white",
-              boxShadow: "-2px 0 12px rgba(0, 0, 0, 0.15)",
-              zIndex: 1002,
-              display: "flex",
-              flexDirection: "column",
-              overflowY: "auto",
-            }}
-          >
-            {/* Cart Header */}
-            <div
-              style={{
-                padding: "16px",
-                borderBottom: "1px solid #e0e0e0",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                position: "sticky",
-                top: 0,
-                backgroundColor: "white",
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "bold",
-                  color: "#333",
-                  margin: 0,
-                }}
-              >
-                Shopping Cart
-              </h2>
-              <button
-                onClick={() => setShowCart(false)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: "24px",
-                  cursor: "pointer",
-                  color: "#999",
-                }}
-              >
+          <div className="cart-sidebar">
+            <div className="cart-header">
+              <h2 className="cart-title">Shopping Cart</h2>
+              <button onClick={() => setShowCart(false)} className="cart-close-btn">
                 ✕
               </button>
             </div>
 
-            {/* Cart Items */}
-            <div
-              style={{
-                flex: 1,
-                overflowY: "auto",
-                padding: "16px",
-              }}
-            >
+            <div className="cart-body">
               {cartItems.length > 0 ? (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                  }}
-                >
+                <div className="cart-items-list">
                   {cartItems.map((item) => {
                     const price =
                       typeof item.price === "string"
@@ -693,143 +303,45 @@ export default function FluidMarket() {
                     const itemTotal = price * item.quantity;
 
                     return (
-                      <div
-                        key={item.id}
-                        style={{
-                          display: "flex",
-                          gap: "12px",
-                          padding: "12px",
-                          backgroundColor: "#f9f9f9",
-                          borderRadius: "8px",
-                          border: "1px solid #e0e0e0",
-                        }}
-                      >
-                        {/* Product Image */}
+                      <div key={item.id} className="cart-item-card">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={item.image}
                           alt={item.name}
-                          style={{
-                            width: "80px",
-                            height: "80px",
-                            borderRadius: "8px",
-                            objectFit: "cover",
-                          }}
+                          className="cart-item-img"
                         />
 
-                        {/* Product Info */}
-                        <div
-                          style={{
-                            flex: 1,
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "8px",
-                          }}
-                        >
-                          <h4
-                            style={{
-                              margin: 0,
-                              fontSize: "14px",
-                              fontWeight: "bold",
-                              color: "#333",
-                            }}
-                          >
-                            {item.name}
-                          </h4>
-                          <p
-                            style={{
-                              margin: 0,
-                              fontSize: "12px",
-                              color: "#666",
-                            }}
-                          >
-                            {item.price}
-                          </p>
+                        <div className="cart-item-info">
+                          <h4 className="cart-item-name">{item.name}</h4>
+                          <p className="cart-item-price">{item.price}</p>
 
-                          {/* Quantity Controls */}
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
-                              marginTop: "4px",
-                            }}
-                          >
+                          <div className="cart-qty-controls">
                             <button
                               onClick={() =>
-                                updateCartItemQuantity(
-                                  item.id,
-                                  item.quantity - 1,
-                                )
+                                updateCartItemQuantity(item.id, item.quantity - 1)
                               }
-                              style={{
-                                background: "#f0f0f0",
-                                border: "none",
-                                width: "28px",
-                                height: "28px",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "14px",
-                                fontWeight: "bold",
-                              }}
+                              className="qty-btn"
                             >
                               −
                             </button>
-                            <span
-                              style={{
-                                fontSize: "14px",
-                                fontWeight: "bold",
-                                minWidth: "20px",
-                                textAlign: "center",
-                              }}
-                            >
-                              {item.quantity}
-                            </span>
+                            <span className="qty-value">{item.quantity}</span>
                             <button
                               onClick={() =>
-                                updateCartItemQuantity(
-                                  item.id,
-                                  item.quantity + 1,
-                                )
+                                updateCartItemQuantity(item.id, item.quantity + 1)
                               }
-                              style={{
-                                background: "#f0f0f0",
-                                border: "none",
-                                width: "28px",
-                                height: "28px",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "14px",
-                                fontWeight: "bold",
-                              }}
+                              className="qty-btn"
                             >
                               +
                             </button>
-                            <span
-                              style={{
-                                marginLeft: "auto",
-                                fontSize: "12px",
-                                fontWeight: "bold",
-                                color: "#0b57cf",
-                              }}
-                            >
+                            <span className="item-total-price">
                               Rp {itemTotal.toLocaleString("id-ID")}
                             </span>
                           </div>
                         </div>
 
-                        {/* Remove Button */}
                         <button
                           onClick={() => removeFromCart(item.id)}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            color: "#ff6b6b",
-                            cursor: "pointer",
-                            fontSize: "18px",
-                            padding: "0",
-                            height: "fit-content",
-                          }}
+                          className="cart-remove-btn"
                         >
                           🗑
                         </button>
@@ -838,13 +350,7 @@ export default function FluidMarket() {
                   })}
                 </div>
               ) : (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "32px 16px",
-                    color: "#999",
-                  }}
-                >
+                <div className="fm-empty-state">
                   <p style={{ fontSize: "14px", marginBottom: "8px" }}>
                     Your cart is empty
                   </p>
@@ -855,70 +361,25 @@ export default function FluidMarket() {
               )}
             </div>
 
-            {/* Cart Footer */}
             {cartItems.length > 0 && (
-              <div
-                style={{
-                  padding: "16px",
-                  borderTop: "1px solid #e0e0e0",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                  backgroundColor: "#f9f9f9",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: "14px",
-                  }}
-                >
-                  <span style={{ color: "#666" }}>Subtotal:</span>
-                  <span style={{ fontWeight: "bold", color: "#333" }}>
+              <div className="cart-footer">
+                <div className="cart-summary-row">
+                  <span className="cart-summary-label">Subtotal:</span>
+                  <span className="cart-summary-value">
                     Rp {cartTotal.toLocaleString("id-ID")}
                   </span>
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: "14px",
-                  }}
-                >
-                  <span style={{ color: "#666" }}>Shipping:</span>
-                  <span style={{ fontWeight: "bold", color: "#333" }}>
-                    Free
-                  </span>
+                <div className="cart-summary-row">
+                  <span className="cart-summary-label">Shipping:</span>
+                  <span className="cart-summary-value">Free</span>
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: "16px",
-                    fontWeight: "bold",
-                    paddingTop: "12px",
-                    borderTop: "1px solid #e0e0e0",
-                  }}
-                >
+                <div className="cart-total-row">
                   <span style={{ color: "#333" }}>Total:</span>
                   <span style={{ color: "#0b57cf" }}>
                     Rp {cartTotal.toLocaleString("id-ID")}
                   </span>
                 </div>
-                <button
-                  style={{
-                    backgroundColor: "#0b57cf",
-                    color: "white",
-                    border: "none",
-                    padding: "12px 16px",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                    marginTop: "8px",
-                  }}
-                >
+                <button className="cart-checkout-btn">
                   Proceed to Checkout
                 </button>
               </div>
