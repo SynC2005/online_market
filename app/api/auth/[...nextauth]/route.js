@@ -1,14 +1,9 @@
 import NextAuth from "next-auth";
 import KeycloakProvider from "next-auth/providers/keycloak";
-import { createClient } from "@supabase/supabase-js";
+// 1. Import koneksi Supabase Anda
+import { supabase } from "@/utils/supabase"; 
 
-// Inisialisasi Supabase menggunakan Service Role (Hanya jalan di Server!)
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-export const authOptions = {
+const handler = NextAuth({
   providers: [
     KeycloakProvider({
       clientId: process.env.KEYCLOAK_ID,
@@ -17,52 +12,59 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    // 1. Dijalankan sesaat setelah user berhasil login dari Keycloak/Google
+    // 2. Tambahkan Callback signIn di sini
     async signIn({ user, profile }) {
       try {
-        // Ambil role dari Keycloak (default ke 'user' jika kosong)
-        const userRole = profile.realm_access?.roles?.includes('admin') ? 'admin' : 'user';
+        // Ambil role dari profil Keycloak (Defaultnya 'user' jika tidak ada)
+        const roles = profile?.realm_access?.roles || [];
+        let userRole = "user";
+        if (roles.includes("admin")) userRole = "admin";
+        else if (roles.includes("driver")) userRole = "driver";
 
-        // Masukkan atau perbarui data user ke tabel profiles di Supabase
-        const { error } = await supabaseAdmin
-          .from('profiles')
-          .upsert({ 
-            id: user.id, // ID dari Keycloak
-            email: user.email, 
-            full_name: user.name,
-            role: userRole
-          }, { onConflict: 'email' });
+        // 3. Simpan atau Update data ke Supabase (Upsert)
+        // Upsert akan mengecek: Jika email sudah ada, update datanya. Jika belum, buat baru.
+        const { error } = await supabase
+          .from("profiles") // Ganti dengan nama tabel Anda jika berbeda (misal: "users")
+          .upsert(
+            {
+              email: user.email,
+              name: user.name,
+              image: user.image,
+              role: userRole,
+              // Anda bisa menambahkan kolom lain jika ada di tabel Supabase
+            },
+            { onConflict: "email" } // Pastikan kolom email disetting UNIQUE di Supabase
+          );
 
-        if (error) throw error;
-        return true; // Lanjut ke proses login NextAuth
+        if (error) {
+          console.error("Gagal menyimpan ke Supabase:", error.message);
+        } else {
+          console.log("Data user berhasil disinkronisasi ke Supabase!");
+        }
+
+        // Return true agar proses login NextAuth diizinkan lanjut
+        return true;
       } catch (error) {
-        console.error("Gagal sinkronisasi ke Supabase:", error);
-        return false; // Batalkan login jika gagal simpan ke DB
+        console.error("Terjadi kesalahan sistem saat sinkronisasi:", error);
+        // Tetap return true agar user tidak terblokir login meskipun database sedang down
+        return true; 
       }
     },
 
-    // 2. Memasukkan role ke dalam token JWT NextAuth
+    // (Biarkan jwt dan session callback Anda yang sudah ada sebelumnya di bawah ini)
     async jwt({ token, profile }) {
       if (profile) {
         token.roles = profile.realm_access?.roles || [];
-        token.id = profile.sub; // Simpan ID Keycloak ke token
       }
       return token;
     },
-
-    // 3. Melemparkan data dari token ke Session agar bisa dibaca di React (Frontend)
     async session({ session, token }) {
       if (token) {
         session.user.roles = token.roles;
-        session.user.id = token.id;
       }
       return session;
     }
   },
-  pages: {
-    signIn: '/login', // Jika Anda punya halaman login custom
-  },
-};
+});
 
-const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
