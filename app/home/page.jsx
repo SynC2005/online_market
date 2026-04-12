@@ -37,6 +37,14 @@ export default function FluidMarket() {
   const [showMenu, setShowMenu] = useState(false);
   const [showCart, setShowCart] = useState(false);
 
+  // State Baru untuk Checkout & Profil
+  const [showProfileForm, setShowProfileForm] = useState(false);
+  const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
+  const [formData, setFormData] = useState({
+    phone: "",
+    address: "",
+  });
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -76,14 +84,15 @@ export default function FluidMarket() {
   };
 
   const handleLogout = async () => {
-    // 1. Hapus sesi lokal di Next.js terlebih dahulu (tanpa langsung pindah halaman)
+    // 1. Hapus sesi lokal di Next.js terlebih dahulu
     await signOut({ redirect: false });
 
     // 2. Siapkan URL untuk menghapus sesi di server Satpam (Keycloak)
-    const keycloakLogoutUrl = "http://136.119.3.213.sslip.io:8080/realms/online-market/protocol/openid-connect/logout";
-    
+    const keycloakLogoutUrl =
+      "http://136.119.3.213.sslip.io:8080/realms/online-market/protocol/openid-connect/logout";
+
     // 3. Tentukan ke mana Keycloak harus mengembalikan user setelah sukses logout
-    const redirectUri = encodeURIComponent(window.location.origin + "/login"); 
+    const redirectUri = encodeURIComponent(window.location.origin + "/login");
     const clientId = "nextjs-app";
 
     // 4. Lemparkan browser ke Keycloak untuk pembersihan total
@@ -128,19 +137,97 @@ export default function FluidMarket() {
     return total + price * item.quantity;
   }, 0);
 
+  // --- FUNGSI CHECKOUT & PROFILE BARU ---
+  const handleCheckoutClick = async () => {
+    if (!session?.user?.email) {
+      alert("Silakan login terlebih dahulu untuk melakukan checkout!");
+      return;
+    }
+
+    setIsLoadingCheckout(true);
+
+    try {
+      // Cek ke Supabase apakah alamat user sudah ada
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("email", session.user.email)
+        .single();
+
+      // Jika alamat belum ada, tampilkan form
+      if (error || !profile || !profile.address || !profile.phone) {
+        setShowProfileForm(true);
+      } else {
+        // Jika sudah lengkap, langsung proses pesanan
+        processOrder(profile);
+      }
+    } catch (err) {
+      console.error("Gagal mengecek profil:", err);
+    } finally {
+      setIsLoadingCheckout(false);
+    }
+  };
+
+  const saveProfileAndCheckout = async (e) => {
+    e.preventDefault();
+    setIsLoadingCheckout(true);
+
+    try {
+      // Simpan data diri ke Supabase
+      const { error } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            email: session.user.email,
+            full_name: session.user.name,
+            phone: formData.phone,
+            address: formData.address,
+            role: "user",
+          },
+          { onConflict: "email" }
+        );
+
+      if (error) throw error;
+
+      alert("Data pengiriman berhasil disimpan!");
+      setShowProfileForm(false);
+
+      // Lanjut proses pesanan
+      processOrder({ ...formData, email: session.user.email });
+    } catch (err) {
+      alert("Gagal menyimpan data: " + err.message);
+    } finally {
+      setIsLoadingCheckout(false);
+    }
+  };
+
+  const processOrder = async (userProfile) => {
+    // Di sini nantinya Anda bisa menambahkan logika insert ke tabel 'orders'
+    alert(
+      `Pesanan berhasil dibuat!\n\nEmail: ${userProfile.email}\nDikirim ke: ${userProfile.address}`
+    );
+
+    // Kosongkan keranjang setelah berhasil checkout
+    setCartItems([]);
+    setShowCart(false);
+  };
+  // --------------------------------------
+
   return (
     <div className="app-container">
       {/* Header */}
       <header className="fm-header">
         <div className="fm-header-top">
-          <button onClick={() => setShowMenu(!showMenu)} className="fm-icon-btn">
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="fm-icon-btn"
+          >
             <Menu size={24} color="#333" />
           </button>
 
           {/* User Menu Dropdown */}
           {showMenu && (
             <div className="fm-user-menu">
-              {/* User Info */}
               {session && (
                 <div className="fm-user-info">
                   <div className="fm-user-info-flex">
@@ -166,40 +253,49 @@ export default function FluidMarket() {
                 </div>
               )}
 
-              {/* Menu Items */}
               <div className="fm-menu-items-container">
-                <button onClick={() => setShowMenu(false)} className="fm-menu-btn">
+                <button
+                  onClick={() => setShowMenu(false)}
+                  className="fm-menu-btn"
+                >
                   <User size={18} /> My Profile
                 </button>
-                <button onClick={() => setShowMenu(false)} className="fm-menu-btn">
+                <button
+                  onClick={() => setShowMenu(false)}
+                  className="fm-menu-btn"
+                >
                   <ShoppingCart size={18} /> My Orders
                 </button>
-                <button onClick={() => setShowMenu(false)} className="fm-menu-btn">
+                <button
+                  onClick={() => setShowMenu(false)}
+                  className="fm-menu-btn"
+                >
                   <Heart size={18} /> Favorites
                 </button>
 
                 <div className="fm-menu-divider" />
 
-                {/* Tombol Logout yang sudah diperbarui */}
-                <button
-                  onClick={handleLogout}
-                  className="fm-logout-btn"
-                >
+                <button onClick={handleLogout} className="fm-logout-btn">
                   <LogOut size={18} /> Logout
                 </button>
               </div>
             </div>
           )}
 
-          {/* Close menu backdrop */}
           {showMenu && (
-            <div onClick={() => setShowMenu(false)} className="fm-menu-backdrop" />
+            <div
+              onClick={() => setShowMenu(false)}
+              className="fm-menu-backdrop"
+            />
           )}
 
           <h1 className="fm-logo">Fluid Market</h1>
 
           <div style={{ position: "relative" }}>
-            <button onClick={() => setShowCart(!showCart)} className="fm-icon-btn">
+            <button
+              onClick={() => setShowCart(!showCart)}
+              className="fm-icon-btn"
+            >
               <ShoppingCart size={24} color="#333" />
             </button>
             {cartItems.length > 0 && (
@@ -303,7 +399,10 @@ export default function FluidMarket() {
           <div className="cart-sidebar">
             <div className="cart-header">
               <h2 className="cart-title">Shopping Cart</h2>
-              <button onClick={() => setShowCart(false)} className="cart-close-btn">
+              <button
+                onClick={() => setShowCart(false)}
+                className="cart-close-btn"
+              >
                 ✕
               </button>
             </div>
@@ -334,7 +433,10 @@ export default function FluidMarket() {
                           <div className="cart-qty-controls">
                             <button
                               onClick={() =>
-                                updateCartItemQuantity(item.id, item.quantity - 1)
+                                updateCartItemQuantity(
+                                  item.id,
+                                  item.quantity - 1
+                                )
                               }
                               className="qty-btn"
                             >
@@ -343,7 +445,10 @@ export default function FluidMarket() {
                             <span className="qty-value">{item.quantity}</span>
                             <button
                               onClick={() =>
-                                updateCartItemQuantity(item.id, item.quantity + 1)
+                                updateCartItemQuantity(
+                                  item.id,
+                                  item.quantity + 1
+                                )
                               }
                               className="qty-btn"
                             >
@@ -395,13 +500,149 @@ export default function FluidMarket() {
                     Rp {cartTotal.toLocaleString("id-ID")}
                   </span>
                 </div>
-                <button className="cart-checkout-btn">
-                  Proceed to Checkout
+                {/* Tombol Checkout yang Diperbarui */}
+                <button 
+                  onClick={handleCheckoutClick}
+                  disabled={isLoadingCheckout}
+                  className="cart-checkout-btn"
+                >
+                  {isLoadingCheckout ? "Memproses..." : "Proceed to Checkout"}
                 </button>
               </div>
             )}
           </div>
         </>
+      )}
+
+      {/* Modal / Pop-Up Form Lengkapi Profil */}
+      {showProfileForm && (
+        <div
+          className="cart-backdrop"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1005, // Harus lebih tinggi dari sidebar keranjang
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "24px",
+              borderRadius: "16px",
+              width: "90%",
+              maxWidth: "400px",
+              boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
+            }}
+          >
+            <h3 style={{ margin: "0 0 8px 0", color: "#1e293b" }}>
+              Lengkapi Data Pengiriman
+            </h3>
+            <p style={{ margin: "0 0 20px 0", fontSize: "14px", color: "#64748b" }}>
+              Kami membutuhkan alamat Anda untuk memproses pengiriman pesanan.
+            </p>
+
+            <form onSubmit={saveProfileAndCheckout}>
+              <div style={{ marginBottom: "16px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    color: "#475569",
+                    marginBottom: "6px",
+                  }}
+                >
+                  Nomor HP / WhatsApp
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: 08123456789"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: "8px",
+                    border: "1px solid #cbd5e1",
+                    outline: "none",
+                    fontSize: "14px",
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: "24px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    color: "#475569",
+                    marginBottom: "6px",
+                  }}
+                >
+                  Alamat Lengkap
+                </label>
+                <textarea
+                  required
+                  rows="3"
+                  placeholder="Nama jalan, gedung, no rumah, kelurahan, dsb."
+                  value={formData.address}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: "8px",
+                    border: "1px solid #cbd5e1",
+                    outline: "none",
+                    fontSize: "14px",
+                    resize: "vertical",
+                  }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowProfileForm(false)}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border: "1px solid #cbd5e1",
+                    background: "white",
+                    color: "#64748b",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoadingCheckout}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border: "none",
+                    background: "#0b57cf",
+                    color: "white",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                  }}
+                >
+                  {isLoadingCheckout ? "Menyimpan..." : "Simpan & Checkout"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       <BottomNav />
