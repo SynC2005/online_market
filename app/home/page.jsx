@@ -75,6 +75,21 @@ export default function FluidMarket() {
     }
   };
 
+  const handleLogout = async () => {
+    // 1. Hapus sesi lokal di Next.js terlebih dahulu (tanpa langsung pindah halaman)
+    await signOut({ redirect: false });
+
+    // 2. Siapkan URL untuk menghapus sesi di server Satpam (Keycloak)
+    const keycloakLogoutUrl = "http://136.119.3.213.sslip.io:8080/realms/online-market/protocol/openid-connect/logout";
+    
+    // 3. Tentukan ke mana Keycloak harus mengembalikan user setelah sukses logout
+    const redirectUri = encodeURIComponent(window.location.origin + "/login"); 
+    const clientId = "nextjs-app";
+
+    // 4. Lemparkan browser ke Keycloak untuk pembersihan total
+    window.location.href = `${keycloakLogoutUrl}?client_id=${clientId}&post_logout_redirect_uri=${redirectUri}`;
+  };
+
   const addToCart = (product) => {
     setCartItems((prev) => {
       const existingItem = prev.find((item) => item.id === product.id);
@@ -165,8 +180,9 @@ export default function FluidMarket() {
 
                 <div className="fm-menu-divider" />
 
+                {/* Tombol Logout yang sudah diperbarui */}
                 <button
-                  onClick={() => signOut({ redirect: true, callbackUrl: "/" })}
+                  onClick={handleLogout}
                   className="fm-logout-btn"
                 >
                   <LogOut size={18} /> Logout
