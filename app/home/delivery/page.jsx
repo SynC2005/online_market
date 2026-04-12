@@ -1,47 +1,68 @@
 "use client";
 
-import React, { useState } from "react";
-import { Menu, Truck, MapPin, Clock, Phone, CheckCircle } from "lucide-react";
+import React, { useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Truck,
+  MapPin,
+  Clock,
+  Phone,
+  CheckCircle,
+  ArrowLeft,
+} from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 
-export default function DeliveryPage() {
-  const [activeDelivery, setActiveDelivery] = useState(0);
+const DELIVERIES = [
+  {
+    id: "#ORD-8921",
+    orderId: "#ORD-8921",
+    status: "In Transit",
+    driver: "John Smith",
+    phone: "+1-555-123-4567",
+    eta: "15 mins away",
+    items: "4 items",
+    location: "2.5 km away",
+    progress: 75,
+  },
+  {
+    id: "#ORD-8920",
+    orderId: "#ORD-8920",
+    status: "Out for Delivery",
+    driver: "Sarah Johnson",
+    phone: "+1-555-987-6543",
+    eta: "30 mins away",
+    items: "3 items",
+    location: "5.2 km away",
+    progress: 50,
+  },
+  {
+    id: "#ORD-8919",
+    orderId: "#ORD-8919",
+    status: "Delivered",
+    driver: "Mike Wilson",
+    phone: "+1-555-456-7890",
+    eta: "Delivered",
+    items: "5 items",
+    location: "Delivered",
+    progress: 100,
+  },
+];
 
-  const deliveries = [
-    {
-      id: 1,
-      orderId: "#ORD-8921",
-      status: "In Transit",
-      driver: "John Smith",
-      phone: "+1-555-123-4567",
-      eta: "15 mins away",
-      items: "4 items",
-      location: "2.5 km away",
-      progress: 75,
-    },
-    {
-      id: 2,
-      orderId: "#ORD-8920",
-      status: "Out for Delivery",
-      driver: "Sarah Johnson",
-      phone: "+1-555-987-6543",
-      eta: "30 mins away",
-      items: "3 items",
-      location: "5.2 km away",
-      progress: 50,
-    },
-    {
-      id: 3,
-      orderId: "#ORD-8919",
-      status: "Delivered",
-      driver: "Mike Wilson",
-      phone: "+1-555-456-7890",
-      eta: "Delivered",
-      items: "5 items",
-      location: "Delivered",
-      progress: 100,
-    },
-  ];
+export default function DeliveryPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get("orderId");
+
+  const deliveries = DELIVERIES;
+
+  // Compute activeDelivery based on orderId
+  const activeDelivery = useMemo(() => {
+    if (orderId) {
+      const index = DELIVERIES.findIndex((d) => d.id === orderId);
+      return index !== -1 ? index : 0;
+    }
+    return 0;
+  }, [orderId]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -73,8 +94,12 @@ export default function DeliveryPage() {
     <div className="app-container">
       {/* Header */}
       <header className="header">
-        <button className="icon-btn">
-          <Menu size={24} color="#0d47a1" />
+        <button
+          onClick={() => router.back()}
+          className="icon-btn"
+          style={{ display: "flex", alignItems: "center", gap: "8px" }}
+        >
+          <ArrowLeft size={24} color="#0d47a1" />
         </button>
         <h1 className="logo">Delivery Tracking</h1>
         <button className="icon-btn">
