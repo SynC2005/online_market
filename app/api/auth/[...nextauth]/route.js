@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import KeycloakProvider from "next-auth/providers/keycloak";
-// 1. Import koneksi Supabase Anda
-import { supabase } from "@/utils/supabase"; 
+import { supabase } from "@/utils/supabase";
 
 const handler = NextAuth({
   providers: [
@@ -9,37 +8,37 @@ const handler = NextAuth({
       clientId: process.env.KEYCLOAK_ID,
       clientSecret: process.env.KEYCLOAK_SECRET,
       issuer: process.env.KEYCLOAK_ISSUER,
+      // 1. TAMBAHAN UNTUK MENGATASI TIMEOUT (Tunggu hingga 10 detik)
+      httpOptions: {
+        timeout: 10000, 
+      },
       authorization: {
         params: {
-          prompt: "select_account", // Memaksa pilih akun Google
-          kc_idp_hint: "google",    // Langsung tembus ke Google
+          prompt: "select_account",
+          kc_idp_hint: "google",
         },
       },
     }),
   ],
   callbacks: {
-    // 2. Tambahkan Callback signIn di sini
     async signIn({ user, profile }) {
       try {
-        // Ambil role dari profil Keycloak (Defaultnya 'user' jika tidak ada)
         const roles = profile?.realm_access?.roles || [];
         let userRole = "user";
         if (roles.includes("admin")) userRole = "admin";
         else if (roles.includes("driver")) userRole = "driver";
 
-        // 3. Simpan atau Update data ke Supabase (Upsert)
-        // Upsert akan mengecek: Jika email sudah ada, update datanya. Jika belum, buat baru.
+        // 2. PERBAIKAN NAMA KOLOM SUPABASE (Menjadi full_name)
         const { error } = await supabase
-          .from("profiles") // Ganti dengan nama tabel Anda jika berbeda (misal: "users")
+          .from("profiles")
           .upsert(
             {
               email: user.email,
-              name: user.name,
-              image: user.image,
+              full_name: user.name, // <-- Diperbarui sesuai gambar tabel Anda
               role: userRole,
-              // Anda bisa menambahkan kolom lain jika ada di tabel Supabase
+              // Catatan: Saya menghapus 'image' karena di gambar tabel Anda tidak ada kolom 'image'
             },
-            { onConflict: "email" } // Pastikan kolom email disetting UNIQUE di Supabase
+            { onConflict: "email" }
           );
 
         if (error) {
@@ -48,16 +47,13 @@ const handler = NextAuth({
           console.log("Data user berhasil disinkronisasi ke Supabase!");
         }
 
-        // Return true agar proses login NextAuth diizinkan lanjut
         return true;
       } catch (error) {
         console.error("Terjadi kesalahan sistem saat sinkronisasi:", error);
-        // Tetap return true agar user tidak terblokir login meskipun database sedang down
-        return true; 
+        return true;
       }
     },
 
-    // (Biarkan jwt dan session callback Anda yang sudah ada sebelumnya di bawah ini)
     async jwt({ token, profile }) {
       if (profile) {
         token.roles = profile.realm_access?.roles || [];
