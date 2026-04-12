@@ -1723,3 +1723,82 @@ h2 {
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+/* --- DRIVER DASHBOARD STYLES --- */
+.driver-layout {
+  background-color: #f4f6fa;
+  min-height: 100vh;
+  padding-bottom: 80px; /* Ruang untuk bottom nav */
+  font-family: sans-serif;
+}
+
+.driver-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #f4f6fa;
+}
+
+.header-left { display: flex; align-items: center; gap: 12px; }
+.profile-pic { width: 40px; height: 40px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.header-text h1 { margin: 0; font-size: 16px; font-weight: 700; color: #1e293b; }
+.header-text p { margin: 0; font-size: 12px; color: #64748b; }
+
+.header-right { display: flex; align-items: center; gap: 15px; }
+.status-badge { display: flex; align-items: center; gap: 6px; background: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.status-badge .dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; }
+.bell-icon { color: #3b82f6; }
+
+.driver-content { padding: 0 20px; display: flex; flex-direction: column; gap: 20px; }
+
+/* Hero Card */
+.hero-card {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  border-radius: 24px;
+  padding: 24px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.welcome-text { font-size: 14px; opacity: 0.9; margin: 0 0 5px 0; }
+.hero-title { font-size: 24px; font-weight: 800; margin: 0 0 15px 0; line-height: 1.2; }
+.earnings-amount .amount { font-size: 36px; font-weight: 800; display: block; }
+.earnings-amount .trend { font-size: 14px; opacity: 0.9; }
+.hero-bg-icon { position: absolute; right: -10px; top: 20px; opacity: 0.2; transform: rotate(-15deg); }
+
+/* General Card */
+.card { background: white; border-radius: 24px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+.availability-card h3 { margin: 0 0 10px 0; font-size: 16px; }
+.availability-card p { margin: 0 0 15px 0; font-size: 14px; color: #64748b; line-height: 1.5; }
+.offline-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: #eff6ff; color: #3b82f6; border: none; padding: 12px; border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer; }
+
+/* Stats Grid */
+.stats-grid { display: flex; flex-direction: column; gap: 15px; }
+.stat-card { background: white; border-radius: 24px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+.stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.icon-box { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; }
+.icon-box.blue { background: #3b82f6; }
+.icon-box.purple { background: #8b5cf6; }
+.icon-box.star { background: #f59e0b; }
+.badge { background: #eff6ff; color: #3b82f6; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.stat-label { margin: 0 0 5px 0; font-size: 13px; color: #64748b; }
+.stat-value { margin: 0; font-size: 20px; font-weight: 700; color: #1e293b; }
+
+/* Recent Shifts */
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.section-header h3 { margin: 0; font-size: 18px; color: #1e293b; }
+.section-header a { font-size: 13px; color: #3b82f6; text-decoration: none; font-weight: 600; }
+.shift-item { background: white; border-radius: 16px; padding: 15px; display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
+.shift-icon { background: #eff6ff; color: #3b82f6; padding: 10px; border-radius: 12px; }
+.shift-details { flex: 1; }
+.shift-details h4 { margin: 0 0 4px 0; font-size: 14px; color: #1e293b; }
+.shift-details p { margin: 0; font-size: 12px; color: #64748b; }
+.shift-earnings { text-align: right; }
+.shift-earnings .money { display: block; font-weight: 700; color: #047857; margin-bottom: 4px; }
+.shift-earnings .status { font-size: 10px; font-weight: 800; background: #d1fae5; color: #047857; padding: 2px 6px; border-radius: 4px; }
+
+/* Bottom Nav Driver */
+.driver-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 15px 10px 25px 10px; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); border-top-left-radius: 24px; border-top-right-radius: 24px; }
+.driver-bottom-nav .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #94a3b8; text-decoration: none; font-size: 12px; }
+.driver-bottom-nav .nav-item.active { color: #3b82f6; }
