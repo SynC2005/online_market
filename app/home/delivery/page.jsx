@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Truck,
@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 
-// Melarang Next.js melakukan prerender statis (Solusi untuk error Vercel)
 export const dynamic = "force-dynamic";
 
 const DELIVERIES = [
@@ -51,14 +50,11 @@ const DELIVERIES = [
   },
 ];
 
-export default function DeliveryPage() {
+function DeliveryContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
-  const deliveries = DELIVERIES;
-
-  // Menggunakan useState agar kartu pesanan bisa diklik dan diubah
   const [activeDelivery, setActiveDelivery] = useState(() => {
     if (orderId) {
       const index = DELIVERIES.findIndex((d) => d.id === orderId);
@@ -69,220 +65,102 @@ export default function DeliveryPage() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "In Transit":
-        return "#3b82f6";
-      case "Out for Delivery":
-        return "#f59e0b";
-      case "Delivered":
-        return "#10b981";
-      default:
-        return "#6b7280";
+      case "In Transit": return "#3b82f6";
+      case "Out for Delivery": return "#f59e0b";
+      case "Delivered": return "#10b981";
+      default: return "#64748b";
     }
   };
 
   const getStatusBgColor = (status) => {
     switch (status) {
-      case "In Transit":
-        return "#eff6ff";
-      case "Out for Delivery":
-        return "#fffbf0";
-      case "Delivered":
-        return "#f0fdf4";
-      default:
-        return "#f3f4f6";
+      case "In Transit": return "#eff6ff";
+      case "Out for Delivery": return "#fffbeb";
+      case "Delivered": return "#f0fdf4";
+      default: return "#f8fafc";
     }
   };
 
   return (
-    <div className="app-container">
+    <div className="app-container delivery-container">
       {/* Header */}
       <header className="header">
-        <button
-          onClick={() => router.back()}
-          className="icon-btn"
-          style={{ display: "flex", alignItems: "center", gap: "8px" }}
-        >
-          <ArrowLeft size={24} color="#0d47a1" />
+        <button onClick={() => router.back()} className="header-back-btn">
+          <ArrowLeft size={24} color="#0f172a" />
         </button>
         <h1 className="logo">Delivery Tracking</h1>
         <button className="icon-btn">
-          <Truck size={24} color="#0d47a1" />
+          <Truck size={24} color="#0f172a" />
         </button>
       </header>
 
       {/* Active Delivery Section */}
       <section className="section">
-        <h2 style={{ marginBottom: "16px" }}>Live Tracking</h2>
+        <h2 className="section-title">Live Tracking</h2>
 
-        {deliveries.length > 0 && (
-          <div
-            className="delivery-card"
-            style={{
-              background: "#fff",
-              borderRadius: "16px",
-              padding: "20px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              marginBottom: "16px",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "start",
-                marginBottom: "16px",
-              }}
-            >
+        {DELIVERIES.length > 0 && (
+          <div className="delivery-card">
+            <div className="delivery-card-header">
               <div>
-                <p style={{ fontSize: "11px", color: "#999", fontWeight: 600 }}>
-                  ORDER {deliveries[activeDelivery].orderId}
+                <p className="order-id-text">
+                  ORDER {DELIVERIES[activeDelivery].orderId}
                 </p>
-                <h3
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: 600,
-                    marginTop: "4px",
-                  }}
-                >
-                  {deliveries[activeDelivery].status}
+                <h3 className="status-title-text">
+                  {DELIVERIES[activeDelivery].status}
                 </h3>
               </div>
+              
+              {/* Dynamic Inline Style for Badge Colors */}
               <div
+                className="status-badge"
                 style={{
-                  backgroundColor: getStatusBgColor(
-                    deliveries[activeDelivery].status
-                  ),
-                  color: getStatusColor(deliveries[activeDelivery].status),
-                  padding: "6px 12px",
-                  borderRadius: "20px",
-                  fontSize: "12px",
-                  fontWeight: 600,
+                  backgroundColor: getStatusBgColor(DELIVERIES[activeDelivery].status),
+                  color: getStatusColor(DELIVERIES[activeDelivery].status),
                 }}
               >
-                {deliveries[activeDelivery].status}
+                {DELIVERIES[activeDelivery].status}
               </div>
             </div>
 
             {/* Progress Bar */}
-            <div style={{ marginBottom: "16px" }}>
-              <div
-                style={{
-                  height: "8px",
-                  backgroundColor: "#e5e7eb",
-                  borderRadius: "4px",
-                  overflow: "hidden",
-                  marginBottom: "8px",
-                }}
-              >
+            <div className="progress-container">
+              <div className="progress-track">
+                {/* Dynamic Inline Style for Progress Width & Color */}
                 <div
+                  className="progress-fill"
                   style={{
-                    height: "100%",
-                    backgroundColor: getStatusColor(
-                      deliveries[activeDelivery].status
-                    ),
-                    width: `${deliveries[activeDelivery].progress}%`,
-                    borderRadius: "4px",
-                    transition: "width 0.3s ease",
+                    backgroundColor: getStatusColor(DELIVERIES[activeDelivery].status),
+                    width: `${DELIVERIES[activeDelivery].progress}%`,
                   }}
                 ></div>
               </div>
-              <p style={{ fontSize: "12px", color: "#666" }}>
-                {deliveries[activeDelivery].progress}% Complete
+              <p className="progress-text">
+                {DELIVERIES[activeDelivery].progress}% Complete
               </p>
             </div>
 
             {/* Driver Info */}
-            <div
-              style={{
-                backgroundColor: "#f9fafb",
-                padding: "16px",
-                borderRadius: "12px",
-                marginBottom: "16px",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <p
-                    style={{
-                      fontSize: "12px",
-                      color: "#999",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    Driver
-                  </p>
-                  <p style={{ fontSize: "14px", fontWeight: 600 }}>
-                    {deliveries[activeDelivery].driver}
-                  </p>
-                </div>
-                <a
-                  href={`tel:${deliveries[activeDelivery].phone}`}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "50%",
-                    backgroundColor: "#2563eb",
-                    color: "white",
-                    textDecoration: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  <Phone size={18} />
-                </a>
+            <div className="driver-info-card">
+              <div>
+                <p className="driver-label">Driver</p>
+                <p className="driver-name">{DELIVERIES[activeDelivery].driver}</p>
               </div>
+              <a href={`tel:${DELIVERIES[activeDelivery].phone}`} className="phone-btn">
+                <Phone size={18} />
+              </a>
             </div>
 
             {/* ETA & Location */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "12px",
-              }}
-            >
-              <div
-                style={{
-                  padding: "12px",
-                  backgroundColor: "#f3f4f6",
-                  borderRadius: "12px",
-                  textAlign: "center",
-                }}
-              >
-                <Clock
-                  size={18}
-                  style={{ marginBottom: "8px", color: "#2563eb" }}
-                />
-                <p style={{ fontSize: "12px", color: "#999" }}>ETA</p>
-                <p style={{ fontSize: "14px", fontWeight: 600 }}>
-                  {deliveries[activeDelivery].eta}
-                </p>
+            <div className="eta-location-grid">
+              <div className="grid-item-card">
+                <Clock size={20} className="grid-item-icon" />
+                <p className="grid-item-label">ETA</p>
+                <p className="grid-item-value">{DELIVERIES[activeDelivery].eta}</p>
               </div>
-              <div
-                style={{
-                  padding: "12px",
-                  backgroundColor: "#f3f4f6",
-                  borderRadius: "12px",
-                  textAlign: "center",
-                }}
-              >
-                <MapPin
-                  size={18}
-                  style={{ marginBottom: "8px", color: "#2563eb" }}
-                />
-                <p style={{ fontSize: "12px", color: "#999" }}>Distance</p>
-                <p style={{ fontSize: "14px", fontWeight: 600 }}>
-                  {deliveries[activeDelivery].location}
-                </p>
+              <div className="grid-item-card">
+                <MapPin size={20} className="grid-item-icon" />
+                <p className="grid-item-label">Distance</p>
+                <p className="grid-item-value">{DELIVERIES[activeDelivery].location}</p>
               </div>
             </div>
           </div>
@@ -291,62 +169,30 @@ export default function DeliveryPage() {
 
       {/* All Deliveries */}
       <section className="section">
-        <h2 style={{ marginBottom: "16px" }}>All Deliveries</h2>
+        <h2 className="section-title">All Deliveries</h2>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {deliveries.map((delivery, index) => (
+        <div className="delivery-list">
+          {DELIVERIES.map((delivery, index) => (
             <div
               key={delivery.id}
               onClick={() => setActiveDelivery(index)}
+              className="delivery-list-item"
+              // Dynamic Inline Style for Active Border
               style={{
-                padding: "16px",
-                backgroundColor: "#fff",
-                borderRadius: "12px",
-                border:
-                  activeDelivery === index
-                    ? "2px solid #2563eb"
-                    : "1px solid #e5e7eb",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
+                border: activeDelivery === index ? "2px solid #3b82f6" : "1px solid #e2e8f0",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <p
-                    style={{
-                      fontSize: "12px",
-                      color: "#999",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    {delivery.orderId}
-                  </p>
-                  <p style={{ fontSize: "14px", fontWeight: 600 }}>
-                    {delivery.driver}
-                  </p>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  {delivery.status === "Delivered" ? (
-                    <CheckCircle size={20} color="#10b981" />
-                  ) : (
-                    <Truck size={20} color={getStatusColor(delivery.status)} />
-                  )}
-                  <p
-                    style={{
-                      fontSize: "12px",
-                      color: "#666",
-                      marginTop: "4px",
-                    }}
-                  >
-                    {delivery.status}
-                  </p>
-                </div>
+              <div>
+                <p className="list-item-id">{delivery.orderId}</p>
+                <p className="list-item-name">{delivery.driver}</p>
+              </div>
+              <div className="list-item-status-col">
+                {delivery.status === "Delivered" ? (
+                  <CheckCircle size={20} color="#10b981" />
+                ) : (
+                  <Truck size={20} color={getStatusColor(delivery.status)} />
+                )}
+                <p className="list-item-status-text">{delivery.status}</p>
               </div>
             </div>
           ))}
@@ -355,5 +201,17 @@ export default function DeliveryPage() {
 
       <BottomNav />
     </div>
+  );
+}
+
+export default function DeliveryPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '50px', color: '#64748b' }}>
+        Loading delivery tracking...
+      </div>
+    }>
+      <DeliveryContent />
+    </Suspense>
   );
 }
