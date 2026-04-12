@@ -1798,7 +1798,7 @@ h2 {
   opacity: 0.7;
   cursor: not-allowed;
 }
-<<<<<<< HEAD
+
 
 /* --- DRIVER DASHBOARD STYLES --- */
 .driver-layout {
@@ -1878,5 +1878,4 @@ h2 {
 .driver-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 15px 10px 25px 10px; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); border-top-left-radius: 24px; border-top-right-radius: 24px; }
 .driver-bottom-nav .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #94a3b8; text-decoration: none; font-size: 12px; }
 .driver-bottom-nav .nav-item.active { color: #3b82f6; }
-=======
->>>>>>> 59ebd6624f62575d1fb381544b244250b1811301
+
