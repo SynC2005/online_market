@@ -9,6 +9,12 @@ const handler = NextAuth({
       clientId: process.env.KEYCLOAK_ID,
       clientSecret: process.env.KEYCLOAK_SECRET,
       issuer: process.env.KEYCLOAK_ISSUER,
+      authorization: {
+        params: {
+          prompt: "select_account", // Memaksa pilih akun Google
+          kc_idp_hint: "google",    // Langsung tembus ke Google
+        },
+      },
     }),
   ],
   callbacks: {
