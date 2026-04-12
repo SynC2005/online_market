@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Truck,
@@ -11,15 +11,9 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
-import React from 'react';
-// ... import lainnya ...
 
-// Tambahkan baris ini untuk melarang Next.js melakukan prerender statis
+// Melarang Next.js melakukan prerender statis (Solusi untuk error Vercel)
 export const dynamic = "force-dynamic";
-
-export default function DeliveryPage() {
-  // ... isi kode Anda ...
-}
 
 const DELIVERIES = [
   {
@@ -64,14 +58,14 @@ export default function DeliveryPage() {
 
   const deliveries = DELIVERIES;
 
-  // Compute activeDelivery based on orderId
-  const activeDelivery = useMemo(() => {
+  // Menggunakan useState agar kartu pesanan bisa diklik dan diubah
+  const [activeDelivery, setActiveDelivery] = useState(() => {
     if (orderId) {
       const index = DELIVERIES.findIndex((d) => d.id === orderId);
       return index !== -1 ? index : 0;
     }
     return 0;
-  }, [orderId]);
+  });
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -156,7 +150,7 @@ export default function DeliveryPage() {
               <div
                 style={{
                   backgroundColor: getStatusBgColor(
-                    deliveries[activeDelivery].status,
+                    deliveries[activeDelivery].status
                   ),
                   color: getStatusColor(deliveries[activeDelivery].status),
                   padding: "6px 12px",
@@ -184,10 +178,11 @@ export default function DeliveryPage() {
                   style={{
                     height: "100%",
                     backgroundColor: getStatusColor(
-                      deliveries[activeDelivery].status,
+                      deliveries[activeDelivery].status
                     ),
                     width: `${deliveries[activeDelivery].progress}%`,
                     borderRadius: "4px",
+                    transition: "width 0.3s ease",
                   }}
                 ></div>
               </div>
