@@ -10,6 +10,7 @@ import {
   X,
   LogOut,
   User,
+  MapPin, // Import icon tambahan untuk lokasi
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
@@ -37,12 +38,13 @@ export default function FluidMarket() {
   const [showMenu, setShowMenu] = useState(false);
   const [showCart, setShowCart] = useState(false);
 
-  // State Baru untuk Checkout & Profil
+  // State untuk Checkout & Profil (Ditambah location_link)
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
   const [formData, setFormData] = useState({
     phone: "",
     address: "",
+    location_link: "", // Field baru untuk GMaps
   });
 
   useEffect(() => {
@@ -51,7 +53,6 @@ export default function FluidMarket() {
 
   useEffect(() => {
     let filtered = products;
-
     if (searchQuery.trim()) {
       filtered = filtered.filter(
         (p) =>
@@ -59,13 +60,11 @@ export default function FluidMarket() {
           p.description?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
         (p) => p.category?.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
-
     setFilteredProducts(filtered);
   }, [products, searchQuery, selectedCategory]);
 
@@ -73,7 +72,6 @@ export default function FluidMarket() {
     try {
       setLoading(true);
       const { data, error } = await supabase.from("products").select("*");
-
       if (error) throw error;
       if (data) setProducts(data);
     } catch (error) {
@@ -84,18 +82,10 @@ export default function FluidMarket() {
   };
 
   const handleLogout = async () => {
-    // 1. Hapus sesi lokal di Next.js terlebih dahulu
     await signOut({ redirect: false });
-
-    // 2. Siapkan URL untuk menghapus sesi di server Satpam (Keycloak)
-    const keycloakLogoutUrl =
-      "http://136.119.3.213.sslip.io:8080/realms/online-market/protocol/openid-connect/logout";
-
-    // 3. Tentukan ke mana Keycloak harus mengembalikan user setelah sukses logout
+    const keycloakLogoutUrl = "http://136.119.3.213.sslip.io:8080/realms/online-market/protocol/openid-connect/logout";
     const redirectUri = encodeURIComponent(window.location.origin + "/login");
     const clientId = "nextjs-app";
-
-    // 4. Lemparkan browser ke Keycloak untuk pembersihan total
     window.location.href = `${keycloakLogoutUrl}?client_id=${clientId}&post_logout_redirect_uri=${redirectUri}`;
   };
 
@@ -104,9 +94,7 @@ export default function FluidMarket() {
       const existingItem = prev.find((item) => item.id === product.id);
       if (existingItem) {
         return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
       return [...prev, { ...product, quantity: 1 }];
@@ -130,39 +118,32 @@ export default function FluidMarket() {
   };
 
   const cartTotal = cartItems.reduce((total, item) => {
-    const price =
-      typeof item.price === "string"
-        ? parseFloat(item.price.replace(/[^0-9.-]+/g, ""))
-        : item.price;
+    const price = typeof item.price === "string" ? parseFloat(item.price.replace(/[^0-9.-]+/g, "")) : item.price;
     return total + price * item.quantity;
   }, 0);
 
-  // --- FUNGSI CHECKOUT & PROFILE BARU ---
+  // --- LOGIKA CHECKOUT DENGAN GMAPS ---
   const handleCheckoutClick = async () => {
     if (!session?.user?.email) {
-      alert("Silakan login terlebih dahulu untuk melakukan checkout!");
+      alert("Silakan login terlebih dahulu!");
       return;
     }
-
     setIsLoadingCheckout(true);
-
     try {
-      // Cek ke Supabase apakah alamat user sudah ada
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("email", session.user.email)
         .single();
 
-      // Jika alamat belum ada, tampilkan form
-      if (error || !profile || !profile.address || !profile.phone) {
+      // Cek apakah alamat, HP, atau Link GMaps masih kosong
+      if (error || !profile || !profile.address || !profile.phone || !profile.location_link) {
         setShowProfileForm(true);
       } else {
-        // Jika sudah lengkap, langsung proses pesanan
         processOrder(profile);
       }
     } catch (err) {
-      console.error("Gagal mengecek profil:", err);
+      console.error(err);
     } finally {
       setIsLoadingCheckout(false);
     }
@@ -171,341 +152,119 @@ export default function FluidMarket() {
   const saveProfileAndCheckout = async (e) => {
     e.preventDefault();
     setIsLoadingCheckout(true);
-
     try {
-      // Simpan data diri ke Supabase
       const { error } = await supabase
         .from("profiles")
-        .upsert(
-          {
-            email: session.user.email,
-            full_name: session.user.name,
-            phone: formData.phone,
-            address: formData.address,
-            role: "user",
-          },
-          { onConflict: "email" }
-        );
+        .upsert({
+          email: session.user.email,
+          full_name: session.user.name,
+          phone: formData.phone,
+          address: formData.address,
+          location_link: formData.location_link, // Simpan ke Supabase
+          role: "user",
+        }, { onConflict: "email" });
 
       if (error) throw error;
-
-      alert("Data pengiriman berhasil disimpan!");
+      alert("Data berhasil disimpan!");
       setShowProfileForm(false);
-
-      // Lanjut proses pesanan
       processOrder({ ...formData, email: session.user.email });
     } catch (err) {
-      alert("Gagal menyimpan data: " + err.message);
+      alert("Gagal menyimpan: " + err.message);
     } finally {
       setIsLoadingCheckout(false);
     }
   };
 
   const processOrder = async (userProfile) => {
-    // Di sini nantinya Anda bisa menambahkan logika insert ke tabel 'orders'
-    alert(
-      `Pesanan berhasil dibuat!\n\nEmail: ${userProfile.email}\nDikirim ke: ${userProfile.address}`
-    );
-
-    // Kosongkan keranjang setelah berhasil checkout
+    alert(`Pesanan diproses!\nLokasi GMaps: ${userProfile.location_link}`);
     setCartItems([]);
     setShowCart(false);
   };
-  // --------------------------------------
 
   return (
     <div className="app-container">
       {/* Header */}
       <header className="fm-header">
         <div className="fm-header-top">
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className="fm-icon-btn"
-          >
+          <button onClick={() => setShowMenu(!showMenu)} className="fm-icon-btn">
             <Menu size={24} color="#333" />
           </button>
 
-          {/* User Menu Dropdown */}
           {showMenu && (
             <div className="fm-user-menu">
               {session && (
                 <div className="fm-user-info">
                   <div className="fm-user-info-flex">
                     {session.user?.image ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={session.user.image}
-                        alt="User"
-                        className="fm-avatar"
-                      />
+                      <img src={session.user.image} alt="User" className="fm-avatar" />
                     ) : (
-                      <div className="fm-avatar-placeholder">
-                        <User size={24} />
-                      </div>
+                      <div className="fm-avatar-placeholder"><User size={24} /></div>
                     )}
                     <div>
-                      <p className="fm-user-name">
-                        {session.user?.name || "User"}
-                      </p>
+                      <p className="fm-user-name">{session.user?.name || "User"}</p>
                       <p className="fm-user-email">{session.user?.email}</p>
                     </div>
                   </div>
                 </div>
               )}
-
               <div className="fm-menu-items-container">
-                <button
-                  onClick={() => setShowMenu(false)}
-                  className="fm-menu-btn"
-                >
-                  <User size={18} /> My Profile
-                </button>
-                <button
-                  onClick={() => setShowMenu(false)}
-                  className="fm-menu-btn"
-                >
-                  <ShoppingCart size={18} /> My Orders
-                </button>
-                <button
-                  onClick={() => setShowMenu(false)}
-                  className="fm-menu-btn"
-                >
-                  <Heart size={18} /> Favorites
-                </button>
-
+                <button onClick={() => setShowMenu(false)} className="fm-menu-btn"><User size={18} /> My Profile</button>
+                <button onClick={() => setShowMenu(false)} className="fm-menu-btn"><ShoppingCart size={18} /> My Orders</button>
+                <button onClick={() => setShowMenu(false)} className="fm-menu-btn"><Heart size={18} /> Favorites</button>
                 <div className="fm-menu-divider" />
-
-                <button onClick={handleLogout} className="fm-logout-btn">
-                  <LogOut size={18} /> Logout
-                </button>
+                <button onClick={handleLogout} className="fm-logout-btn"><LogOut size={18} /> Logout</button>
               </div>
             </div>
           )}
-
-          {showMenu && (
-            <div
-              onClick={() => setShowMenu(false)}
-              className="fm-menu-backdrop"
-            />
-          )}
-
+          {showMenu && <div onClick={() => setShowMenu(false)} className="fm-menu-backdrop" />}
           <h1 className="fm-logo">Fluid Market</h1>
-
           <div style={{ position: "relative" }}>
-            <button
-              onClick={() => setShowCart(!showCart)}
-              className="fm-icon-btn"
-            >
-              <ShoppingCart size={24} color="#333" />
-            </button>
-            {cartItems.length > 0 && (
-              <span className="fm-cart-badge">
-                {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
-              </span>
-            )}
+            <button onClick={() => setShowCart(!showCart)} className="fm-icon-btn"><ShoppingCart size={24} color="#333" /></button>
+            {cartItems.length > 0 && <span className="fm-cart-badge">{cartItems.reduce((sum, item) => sum + item.quantity, 0)}</span>}
           </div>
         </div>
 
-        {/* Search Bar */}
         <div className="fm-search-container">
           <Search size={18} color="#999" />
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="fm-search-input"
-          />
-          {searchQuery && (
-            <X
-              size={18}
-              color="#999"
-              style={{ cursor: "pointer" }}
-              onClick={() => setSearchQuery("")}
-            />
-          )}
+          <input type="text" placeholder="Search products..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="fm-search-input" />
         </div>
       </header>
 
-      {/* Promo Banner */}
+      {/* Konten Utama (Singkat) */}
       <section className="fm-promo-banner">
-        <div style={{ fontSize: "32px", marginBottom: "8px" }}>🎉</div>
         <h2 className="fm-promo-title">Flash Sale!</h2>
-        <p className="fm-promo-desc">Get up to 50% off on selected items</p>
         <button className="fm-promo-btn">Shop Now</button>
       </section>
 
-      {/* Category Filter */}
-      <section className="fm-section">
-        <h3 className="fm-section-title">Categories</h3>
-        <div className="fm-category-scroll">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`fm-category-btn ${
-                selectedCategory === cat.id ? "active" : "inactive"
-              }`}
-            >
-              <span>{cat.icon}</span>
-              {cat.label}
-            </button>
+      {/* Daftar Produk */}
+      <section className="fm-products-section">
+        <div className="fm-products-grid">
+          {filteredProducts.map((product) => (
+            <ProductCard key={product.id} {...product} onAddToCart={addToCart} />
           ))}
         </div>
       </section>
 
-      {/* Popular Products Section */}
-      <section className="fm-products-section">
-        <div className="fm-products-header">
-          <h2 className="fm-products-title">
-            {selectedCategory === "all"
-              ? "All Products"
-              : CATEGORIES.find((c) => c.id === selectedCategory)?.label}
-          </h2>
-          <button className="fm-filter-btn">
-            <Filter size={16} />
-          </button>
-        </div>
-
-        {loading ? (
-          <p className="fm-empty-state">Loading products...</p>
-        ) : filteredProducts.length > 0 ? (
-          <div className="fm-products-grid">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                id={product.id}
-                image={product.image}
-                category={product.category}
-                name={product.name}
-                price={product.price}
-                description={product.description}
-                onAddToCart={addToCart}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="fm-empty-state">
-            No products found for {`"${searchQuery || selectedCategory}"`}
-          </p>
-        )}
-      </section>
-
-      {/* Cart Modal */}
+      {/* Cart Sidebar */}
       {showCart && (
         <>
           <div onClick={() => setShowCart(false)} className="cart-backdrop" />
-
           <div className="cart-sidebar">
             <div className="cart-header">
               <h2 className="cart-title">Shopping Cart</h2>
-              <button
-                onClick={() => setShowCart(false)}
-                className="cart-close-btn"
-              >
-                ✕
-              </button>
+              <button onClick={() => setShowCart(false)} className="cart-close-btn">✕</button>
             </div>
-
             <div className="cart-body">
-              {cartItems.length > 0 ? (
-                <div className="cart-items-list">
-                  {cartItems.map((item) => {
-                    const price =
-                      typeof item.price === "string"
-                        ? parseFloat(item.price.replace(/[^0-9.-]+/g, ""))
-                        : item.price;
-                    const itemTotal = price * item.quantity;
-
-                    return (
-                      <div key={item.id} className="cart-item-card">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="cart-item-img"
-                        />
-
-                        <div className="cart-item-info">
-                          <h4 className="cart-item-name">{item.name}</h4>
-                          <p className="cart-item-price">{item.price}</p>
-
-                          <div className="cart-qty-controls">
-                            <button
-                              onClick={() =>
-                                updateCartItemQuantity(
-                                  item.id,
-                                  item.quantity - 1
-                                )
-                              }
-                              className="qty-btn"
-                            >
-                              −
-                            </button>
-                            <span className="qty-value">{item.quantity}</span>
-                            <button
-                              onClick={() =>
-                                updateCartItemQuantity(
-                                  item.id,
-                                  item.quantity + 1
-                                )
-                              }
-                              className="qty-btn"
-                            >
-                              +
-                            </button>
-                            <span className="item-total-price">
-                              Rp {itemTotal.toLocaleString("id-ID")}
-                            </span>
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="cart-remove-btn"
-                        >
-                          🗑
-                        </button>
-                      </div>
-                    );
-                  })}
+              {cartItems.map((item) => (
+                <div key={item.id} className="cart-item-card">
+                    <p>{item.name} x {item.quantity}</p>
                 </div>
-              ) : (
-                <div className="fm-empty-state">
-                  <p style={{ fontSize: "14px", marginBottom: "8px" }}>
-                    Your cart is empty
-                  </p>
-                  <p style={{ fontSize: "12px", opacity: 0.8 }}>
-                    Add products to get started
-                  </p>
-                </div>
-              )}
+              ))}
             </div>
-
             {cartItems.length > 0 && (
               <div className="cart-footer">
-                <div className="cart-summary-row">
-                  <span className="cart-summary-label">Subtotal:</span>
-                  <span className="cart-summary-value">
-                    Rp {cartTotal.toLocaleString("id-ID")}
-                  </span>
-                </div>
-                <div className="cart-summary-row">
-                  <span className="cart-summary-label">Shipping:</span>
-                  <span className="cart-summary-value">Free</span>
-                </div>
-                <div className="cart-total-row">
-                  <span style={{ color: "#333" }}>Total:</span>
-                  <span style={{ color: "#0b57cf" }}>
-                    Rp {cartTotal.toLocaleString("id-ID")}
-                  </span>
-                </div>
-                {/* Tombol Checkout yang Diperbarui */}
-                <button 
-                  onClick={handleCheckoutClick}
-                  disabled={isLoadingCheckout}
-                  className="cart-checkout-btn"
-                >
+                <p>Total: Rp {cartTotal.toLocaleString("id-ID")}</p>
+                <button onClick={handleCheckoutClick} disabled={isLoadingCheckout} className="cart-checkout-btn">
                   {isLoadingCheckout ? "Memproses..." : "Proceed to Checkout"}
                 </button>
               </div>
@@ -514,131 +273,54 @@ export default function FluidMarket() {
         </>
       )}
 
-      {/* Modal / Pop-Up Form Lengkapi Profil */}
+      {/* MODAL FORM PROFIL + GMAPS */}
       {showProfileForm && (
-        <div
-          className="cart-backdrop"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1005, // Harus lebih tinggi dari sidebar keranjang
-          }}
-        >
-          <div
-            style={{
-              background: "white",
-              padding: "24px",
-              borderRadius: "16px",
-              width: "90%",
-              maxWidth: "400px",
-              boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
-            }}
-          >
-            <h3 style={{ margin: "0 0 8px 0", color: "#1e293b" }}>
-              Lengkapi Data Pengiriman
-            </h3>
-            <p style={{ margin: "0 0 20px 0", fontSize: "14px", color: "#64748b" }}>
-              Kami membutuhkan alamat Anda untuk memproses pengiriman pesanan.
-            </p>
-
+        <div className="cart-backdrop" style={{ display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1100 }}>
+          <div style={{ background: "white", padding: "24px", borderRadius: "16px", width: "90%", maxWidth: "400px" }}>
+            <h3 style={{ marginBottom: "8px" }}>Lengkapi Data Pengiriman</h3>
+            <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "20px" }}>Driver membutuhkan lokasi akurat agar barang cepat sampai.</p>
+            
             <form onSubmit={saveProfileAndCheckout}>
+              {/* Input Nomor HP */}
               <div style={{ marginBottom: "16px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    color: "#475569",
-                    marginBottom: "6px",
-                  }}
-                >
-                  Nomor HP / WhatsApp
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Contoh: 08123456789"
+                <label style={{ fontSize: "12px", fontWeight: "bold" }}>Nomor WhatsApp</label>
+                <input 
+                  type="text" required placeholder="0812..." 
                   value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e1",
-                    outline: "none",
-                    fontSize: "14px",
-                  }}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc", marginTop: "4px" }}
                 />
               </div>
 
-              <div style={{ marginBottom: "24px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    color: "#475569",
-                    marginBottom: "6px",
-                  }}
-                >
-                  Alamat Lengkap
-                </label>
-                <textarea
-                  required
-                  rows="3"
-                  placeholder="Nama jalan, gedung, no rumah, kelurahan, dsb."
+              {/* Input Alamat */}
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ fontSize: "12px", fontWeight: "bold" }}>Alamat Lengkap</label>
+                <textarea 
+                  required placeholder="Jl. Raya No. 1..." 
                   value={formData.address}
-                  onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e1",
-                    outline: "none",
-                    fontSize: "14px",
-                    resize: "vertical",
-                  }}
+                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc", marginTop: "4px" }}
                 />
               </div>
 
-              <div style={{ display: "flex", gap: "12px" }}>
-                <button
-                  type="button"
-                  onClick={() => setShowProfileForm(false)}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e1",
-                    background: "white",
-                    color: "#64748b",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                  }}
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isLoadingCheckout}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    borderRadius: "8px",
-                    border: "none",
-                    background: "#0b57cf",
-                    color: "white",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                  }}
-                >
-                  {isLoadingCheckout ? "Menyimpan..." : "Simpan & Checkout"}
-                </button>
+              {/* Input Link GMaps */}
+              <div style={{ marginBottom: "24px" }}>
+                <label style={{ fontSize: "12px", fontWeight: "bold", display: "flex", alignItems: "center", gap: "4px" }}>
+                  <MapPin size={14} color="#ef4444" /> Link Lokasi Google Maps
+                </label>
+                <input 
+                  type="url" required 
+                  placeholder="https://maps.app.goo.gl/..." 
+                  value={formData.location_link}
+                  onChange={(e) => setFormData({...formData, location_link: e.target.value})}
+                  style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc", marginTop: "4px" }}
+                />
+                <small style={{ fontSize: "11px", color: "#94a3b8" }}>Buka Google Maps, cari lokasi Anda, lalu klik "Share" dan salin linknya.</small>
+              </div>
+
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button type="button" onClick={() => setShowProfileForm(false)} style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}>Batal</button>
+                <button type="submit" style={{ flex: 1, padding: "10px", borderRadius: "8px", background: "#0b57cf", color: "white", border: "none" }}>Simpan & Checkout</button>
               </div>
             </form>
           </div>
