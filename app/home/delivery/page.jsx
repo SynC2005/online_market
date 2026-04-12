@@ -11,6 +11,15 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import React from 'react';
+// ... import lainnya ...
+
+// Tambahkan baris ini untuk melarang Next.js melakukan prerender statis
+export const dynamic = "force-dynamic";
+
+export default function DeliveryPage() {
+  // ... isi kode Anda ...
+}
 
 const DELIVERIES = [
   {
