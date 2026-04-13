@@ -23,10 +23,9 @@ export async function processCheckoutBackend(userEmail, cartItems) {
       totalAmount += price * item.quantity;
     });
 
-    // PENTING: Format ID Midtrans tidak boleh ada tanda pagar (#)
     const orderId = `ORD-${Math.floor(10000 + Math.random() * 90000)}`; 
 
-    // Simpan ke database Supabase dengan status Pending
+    // 1. Simpan Header ke tabel 'orders'
     const { error: orderError } = await supabase
       .from("orders")
       .insert({
@@ -39,11 +38,37 @@ export async function processCheckoutBackend(userEmail, cartItems) {
 
     if (orderError) throw orderError;
 
-    // --- LOGIKA MIDTRANS ---
-    // Pastikan process.env.MIDTRANS_SERVER_KEY sudah Anda isi di Vercel / .env.local
+    // ==========================================
+    // 2. LOGIKA BARU: Simpan Detail ke 'order_items'
+    // ==========================================
+    // Kita siapkan array berisi semua barang dari keranjang belanja
+    const orderItemsData = cartItems.map((item) => {
+      const price = typeof item.price === "string" 
+        ? parseFloat(item.price.replace(/[^0-9.-]+/g, "")) 
+        : item.price;
+
+      return {
+        order_id: orderId,
+        product_id: item.id, // ID produk dari tabel products
+        product_name: item.name,
+        quantity: item.quantity,
+        price_at_purchase: price,
+        total_price: price * item.quantity,
+      };
+    });
+
+    // Masukkan semua barang sekaligus ke Supabase
+    const { error: itemsError } = await supabase
+      .from("order_items")
+      .insert(orderItemsData);
+
+    if (itemsError) throw itemsError;
+    // ==========================================
+
+    // 3. LOGIKA MIDTRANS
     let snap = new midtransClient.Snap({
       isProduction: false, 
-      serverKey: process.env.MIDTRANS_SERVER_KEY || "SERVER_KEY_ANDA_KOSONG",
+      serverKey: process.env.MIDTRANS_SERVER_KEY, 
     });
 
     let parameter = {
@@ -65,11 +90,10 @@ export async function processCheckoutBackend(userEmail, cartItems) {
 
     const transaction = await snap.createTransaction(parameter);
 
-    // Kembalikan URL pembayaran Midtrans ke Frontend
     return { 
       success: true, 
       orderId: orderId,
-      paymentUrl: transaction.redirect_url, // Ini yang akan melempar user ke Midtrans
+      paymentUrl: transaction.redirect_url, 
     };
 
   } catch (error) {
