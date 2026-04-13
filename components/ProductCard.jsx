@@ -34,7 +34,10 @@ export default function ProductCard({
         <p className="product-desc">{description}</p>
 
         <div className="product-bottom">
-          <span className="product-price">{price}</span>
+          {/* Format angka menjadi Rupiah Indonesia di sini */}
+          <span className="product-price">
+            Rp {price.toLocaleString("id-ID")}
+          </span>
           <button className="add-btn" onClick={handleAddToCart}>
             <Plus size={20} color="white" />
           </button>

@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { ArrowLeft, Save, Image as ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-// IMPORT Server Action yang baru dibuat
 import { addProductBackend } from '@/app/actions/productActions';
 
 export default function AddProduct() {
@@ -15,7 +14,7 @@ export default function AddProduct() {
     name: '',
     category: '', 
     price: '',
-    quantity: '', // Tambahkan state quantity agar tidak error undefined
+    quantity: '', 
     description: '',
     image: ''
   });
@@ -37,7 +36,6 @@ export default function AddProduct() {
     try {
       setLoading(true);
       
-      // MEMANGGIL LOGIKA BACKEND (Sangat Aman)
       const result = await addProductBackend(formData);
 
       if (result.success) {
@@ -84,7 +82,7 @@ export default function AddProduct() {
             )}
           </div>
           <input 
-            type="text" 
+            type="url" 
             name="image"
             value={formData.image}
             onChange={handleChange}
@@ -119,20 +117,21 @@ export default function AddProduct() {
           />
         </div>
 
-        {/* Input Harga */}
+        {/* Input Harga - Diubah ke tipe Number */}
         <div className="form-group">
-          <label>Harga *</label>
+          <label>Harga (Rp) *</label>
           <input 
-            type="text" 
+            type="number" 
             name="price"
             value={formData.price}
             onChange={handleChange}
-            placeholder="cth: Rp 15.000" 
+            placeholder="cth: 15000 (Tanpa titik)" 
             className="form-input"
+            min="0"
           />
         </div>
 
-        {/* Input Stok (Quantity) - Tambahan agar sesuai dengan validasi Anda */}
+        {/* Input Stok (Quantity) - Diubah ke tipe Number */}
         <div className="form-group">
           <label>Stok Produk *</label>
           <input 
@@ -142,6 +141,7 @@ export default function AddProduct() {
             onChange={handleChange}
             placeholder="cth: 50" 
             className="form-input"
+            min="0"
           />
         </div>
 
