@@ -174,15 +174,21 @@ export default function FluidMarket() {
     }
   };
 
+  // --- LOGIKA PEMROSESAN PESANAN DI SERVER ---
   const processOrder = async (userProfile) => {
     setIsLoadingCheckout(true);
     
+    // Panggil fungsi Backend
     const result = await processCheckoutBackend(session.user.email, cartItems);
 
-    if (result.success) {
-      alert(`✅ Pesanan Berhasil!\nID: ${result.orderId}\nDikirim ke: ${userProfile.address}\n\nDriver akan segera mengantar pesanan Anda!`);
+    if (result.success && result.paymentUrl) {
+      // Kosongkan keranjang dulu
       setCartItems([]);
       setShowCart(false);
+      
+      // Arahkan browser pengguna ke halaman aman Midtrans
+      window.location.href = result.paymentUrl;
+      
     } else {
       alert(`❌ Gagal memproses pesanan: ${result.message}`);
     }
