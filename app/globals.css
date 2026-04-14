@@ -2865,3 +2865,170 @@ textarea.form-input {
   gap: 8px;
   cursor: pointer;
 }
+
+/* ========================================= */
+/* --- ADMIN ORDERS STYLES --- */
+/* ========================================= */
+
+.admin-avatar-box {
+  width: 40px;
+  height: 40px;
+  background-color: #cbd5e1;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--white);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.notification-dot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  border: 2px solid #f4f6fb;
+}
+
+/* Modifikasi stat card agar fleksibel (kiri-kanan) */
+.stat-card-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-icon-purple {
+  background-color: #f3e8ff;
+  color: #a855f7;
+}
+.stat-icon-indigo {
+  background-color: #e0e7ff;
+  color: #6366f1;
+}
+
+/* Order Section */
+.ao-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.ao-badge-new {
+  background-color: #dbeafe;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.ao-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ao-card {
+  background-color: var(--white);
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+}
+
+.ao-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.ao-id {
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.ao-time {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.ao-customer {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 4px 0;
+}
+
+.ao-address {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 16px 0;
+}
+
+.ao-items-box {
+  background-color: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.ao-items-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  margin: 0 0 12px 0;
+  letter-spacing: 0.5px;
+}
+
+.ao-item-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.ao-item-row:last-child { margin-bottom: 0; }
+
+.ao-item-name { color: #475569; }
+.ao-item-price { color: #1e293b; font-weight: 600; }
+
+.ao-total-label {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 4px 0;
+}
+
+.ao-total-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 20px 0;
+}
+
+.ao-empty-state {
+  border: 2px dashed #cbd5e1;
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: 8px;
+}
+
+.ao-empty-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  margin: 12px 0 4px 0;
+}
+
+.ao-empty-subtext {
+  font-size: 12px;
+  color: #94a3b8;
+}

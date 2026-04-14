@@ -101,3 +101,54 @@ export async function processCheckoutBackend(userEmail, cartItems) {
     return { success: false, message: error.message };
   }
 }
+
+// ==========================================
+// FUNGSI KHUSUS HALAMAN ADMIN
+// ==========================================
+
+// Mengambil Data Pesanan Aktif untuk Admin
+export async function getActiveOrders() {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        order_id,
+        total_amount,
+        status,
+        shipping_address,
+        created_at,
+        user_email,
+        order_items (
+          quantity,
+          product_name,
+          price_at_purchase
+        )
+      `)
+      .eq('status', 'Lunas') // HANYA ambil pesanan yang statusnya "Lunas" (dari Webhook) 
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    
+    return { success: true, data: data };
+  } catch (error) {
+    console.error("Gagal mengambil orders:", error.message);
+    return { success: false, message: error.message };
+  }
+}
+
+// Menyelesaikan Pesanan oleh Admin
+export async function completeOrder(orderId) {
+  try {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: 'Completed' })
+      .eq('order_id', orderId);
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error) {
+    console.error("Gagal update order:", error.message);
+    return { success: false, message: error.message };
+  }
+}
