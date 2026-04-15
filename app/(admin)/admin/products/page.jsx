@@ -5,8 +5,8 @@ import {
   ArrowLeft, Plus, Search, Trash2, Pencil 
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/utils/supabase';
-import AdminBottomNav from '@/components/AdminBottomNav'; 
+import { supabase } from '@/lib/supabase/client';
+import AdminBottomNav from '@/components/ui/AdminBottomNav'; 
 
 export default function ManageProducts() {
   const router = useRouter();

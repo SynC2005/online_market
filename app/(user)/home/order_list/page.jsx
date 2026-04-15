@@ -1,7 +1,7 @@
 import React from 'react';
 import { Menu, ShoppingBag, Sparkles } from 'lucide-react';
-import BottomNav from '@/components/BottomNav';
-import OrderCard from '@/components/OrderCard';
+import BottomNav from '@/components/ui/BottomNav';
+import OrderCard from '@/components/ui/OrderCard';
 
 export default function OrderList() {
   const orders = [
@@ -93,18 +93,6 @@ export default function OrderList() {
         </div>
       </section>
 
-      <BottomNav />
-    </div>
-  );
-}
-
-        <div className="restock-image-container">
-           <div className="sparkle-icon"><Sparkles size={20} color="#5b21b6" /></div>
-           <div className="restock-placeholder-img">🥖🥛</div>
-        </div>
-      </section>
-
-      {/* Bottom Navigation */}
       <BottomNav />
     </div>
   );

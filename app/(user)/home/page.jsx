@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { Heart, Plus, Menu, ShoppingCart, Search, Filter } from 'lucide-react';
-import BottomNav from '@/components/BottomNav';
-import { supabase } from '@/utils/supabase';
+import BottomNav from '@/components/ui/BottomNav';
+import { supabase } from '@/lib/supabase/client';
 
 const categories = [
   { icon: "🥚", label: "Dairy" },

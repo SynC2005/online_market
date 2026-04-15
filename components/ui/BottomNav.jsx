@@ -10,7 +10,6 @@ export default function BottomNav() {
 
   return (
     <nav className="bottom-nav">
-      {/* Mengarah ke /home sesuai foldermu app/home/page.jsx */}
       <Link 
         href="/home" 
         className={`nav-item ${pathname === '/home' ? 'active' : ''}`}
@@ -19,7 +18,6 @@ export default function BottomNav() {
         <span>Home</span>
       </Link>
 
-      {/* Mengarah ke /home/order_list */}
       <Link 
         href="/home/order_list" 
         className={`nav-item ${pathname === '/home/order_list' ? 'active' : ''}`}
@@ -28,7 +26,6 @@ export default function BottomNav() {
         <span>Orders</span>
       </Link>
 
-      {/* Mengarah ke /home/delivery */}
       <Link 
         href="/home/delivery" 
         className={`nav-item ${pathname === '/home/delivery' ? 'active' : ''}`}

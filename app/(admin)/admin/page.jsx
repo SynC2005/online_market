@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 // 1. IMPORT KOMPONEN BOTTOM NAV KITA
-import AdminBottomNav from '@/components/AdminBottomNav';
+import AdminBottomNav from '@/components/ui/AdminBottomNav';
 
 export default function AdminDashboard() {
   return (

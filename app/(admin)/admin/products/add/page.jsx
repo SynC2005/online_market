@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Save, Image as ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/utils/supabase';
+import { supabase } from '@/lib/supabase/client';
 
 export default function AddProduct() {
   const router = useRouter();

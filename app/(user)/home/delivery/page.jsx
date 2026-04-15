@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Menu, Truck, MapPin, Clock, Phone, CheckCircle } from "lucide-react";
-import BottomNav from "@/components/BottomNav";
+import BottomNav from "@/components/ui/BottomNav";
 
 export default function DeliveryPage() {
   const [activeDelivery, setActiveDelivery] = useState(0);

@@ -1,6 +1,6 @@
 import React from 'react';
-import Header from '@/components/Header'; // Sesuaikan path import dengan struktur folder Anda
-import BottomNav from '@/components/BottomNav';
+import Header from '@/components/ui/Header'; // Sesuaikan path import dengan struktur folder Anda
+import BottomNav from '@/components/ui/BottomNav';
 import { 
   Search, Flame, Leaf, Egg, Apple, Croissant, 
   Fish, Wine, IceCream, Brush, MoreHorizontal, 

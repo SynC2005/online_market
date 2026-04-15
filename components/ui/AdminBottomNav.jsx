@@ -11,7 +11,6 @@ export default function AdminBottomNav() {
   return (
     <div className="admin-bottom-nav-wrapper">
       <nav className="admin-bottom-nav">
-        {/* Tombol Dashboard */}
         <Link 
           href="/admin" 
           className={`nav-item ${pathname === '/admin' ? 'active' : ''}`}
@@ -22,7 +21,6 @@ export default function AdminBottomNav() {
           <span>DASHBOARD</span>
         </Link>
 
-        {/* Tombol Kelola Produk */}
         <Link 
           href="/admin/products" 
           className={`nav-item ${pathname.includes('/admin/products') ? 'active' : ''}`}
@@ -33,7 +31,6 @@ export default function AdminBottomNav() {
           <span>PRODUK</span>
         </Link>
 
-        {/* Tombol Pesanan */}
         <Link 
           href="/admin/orders" 
           className={`nav-item ${pathname === '/admin/orders' ? 'active' : ''}`}
@@ -44,7 +41,6 @@ export default function AdminBottomNav() {
           <span>PESANAN</span>
         </Link>
 
-        {/* Tombol Profil */}
         <Link 
           href="/admin/profile" 
           className={`nav-item ${pathname === '/admin/profile' ? 'active' : ''}`}
