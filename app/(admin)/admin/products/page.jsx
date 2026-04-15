@@ -78,7 +78,11 @@ export default function ManageProducts() {
         alert('Produk berhasil dihapus!');
       } catch (error) {
         console.error('Error deleting product:', error.message);
-        alert('Gagal menghapus produk.');
+        if (error.message?.includes('foreign key') || error.code === '23503') {
+          alert('Gagal menghapus: Produk ini sudah pernah dipesan oleh pelanggan dan terikat pada riwayat pesanan. Jika ingin menghilangkannya dari etalase, Anda sebaiknya menambahkan fitur "Arsip" atau atur stok menjadi habis.');
+        } else {
+          alert('Gagal menghapus produk.');
+        }
       }
     }
   };
