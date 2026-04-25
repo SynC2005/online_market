@@ -1,0 +1,46 @@
+export const ORDERS = [
+  {
+    id: "#ORD-8921",
+    date: "Oct 24, 2023 - 14:30 PM",
+    status: "IN DELIVERY",
+    statusClass: "in-delivery",
+    itemsTitle: "Hass Avocado, Whole Milk...",
+    itemsCount: "4 items total",
+    items: [
+      { label: "A", bg: "#e5f3cc", zIndex: 3 },
+      { label: "M", bg: "#e0f2fe", zIndex: 2, overlap: true },
+      { label: "+2", bg: "#dbeafe", more: true, zIndex: 1, overlap: true },
+    ],
+    total: "$32.40",
+    buttonLabel: "Track Order",
+    buttonClass: "btn-primary",
+  },
+  {
+    id: "#ORD-8814",
+    date: "Oct 21, 2023 - 09:15 AM",
+    status: "COMPLETED",
+    statusClass: "completed",
+    itemsTitle: "Organic Bananas, Grocery Bundle",
+    itemsCount: "2 items total",
+    items: [
+      { label: "B", bg: "#fef08a", zIndex: 2 },
+      { label: "R", bg: "#ffedd5", zIndex: 1, overlap: true },
+    ],
+    total: "$18.90",
+    buttonLabel: "Reorder",
+    buttonClass: "btn-secondary",
+  },
+  {
+    id: "#ORD-8702",
+    date: "Oct 18, 2023 - 18:45 PM",
+    status: "CANCELLED",
+    statusClass: "cancelled-badge",
+    itemsTitle: "Dark Artisan Chocolates",
+    itemsCount: "1 item total",
+    items: [{ label: "C", bg: "#e5e7eb", zIndex: 1 }],
+    total: "$12.00",
+    buttonLabel: "View Details",
+    buttonClass: "btn-text",
+  },
+];
+

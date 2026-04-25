@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint -c config/eslint.config.mjs",
+    "docker:build": "docker build -f infra/docker/Dockerfile -t fluid-market:latest .",
+    "docker:up": "docker compose --env-file .env.local -f infra/docker/docker-compose.yml up -d",
+    "docker:logs": "docker compose --env-file .env.local -f infra/docker/docker-compose.yml logs -f app",
+    "docker:down": "docker compose --env-file .env.local -f infra/docker/docker-compose.yml down"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.101.1",

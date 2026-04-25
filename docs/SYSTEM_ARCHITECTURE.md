@@ -357,7 +357,7 @@ npm run dev
 
 ```bash
 # Build image
-docker build -t fluid-market:latest .
+docker build -f infra/docker/Dockerfile -t fluid-market:latest .
 
 # Run container
 docker run -p 3000:3000 \
@@ -366,8 +366,8 @@ docker run -p 3000:3000 \
   -e NEXT_PUBLIC_SUPABASE_URL=... \
   fluid-market:latest
 
-# atau dengan docker-compose
-docker-compose up -d
+# atau dengan Docker Compose
+docker compose --env-file .env.local -f infra/docker/docker-compose.yml up -d
 ```
 
 ### 7.4 Production Deployment (Vercel)

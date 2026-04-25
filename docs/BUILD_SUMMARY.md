@@ -159,7 +159,7 @@ File: `.github/workflows/ci-cd.yml`
 
 ### Dockerfile (Multi-Stage Build)
 
-File: `Dockerfile`
+File: `infra/docker/Dockerfile`
 
 **Stages**:
 1. **Dependencies Stage**: Install production dependencies
@@ -175,7 +175,7 @@ File: `Dockerfile`
 
 ### Docker Compose
 
-File: `docker-compose.yml`
+File: `infra/docker/docker-compose.yml`
 
 **Services**:
 - Next.js application

@@ -166,7 +166,7 @@ Buka browser ke: `http://localhost:3000`
 ### Step 1: Build Docker Image
 
 ```bash
-docker build -t fluid-market:latest .
+docker build -f infra/docker/Dockerfile -t fluid-market:latest .
 ```
 
 Output:
@@ -225,13 +225,13 @@ docker ps --format "table {{.Names}}\t{{.Status}}"
 
 ```bash
 # Start all services
-docker-compose up -d
+npm run docker:up
 
 # View logs
-docker-compose logs -f app
+npm run docker:logs
 
 # Stop services
-docker-compose down
+npm run docker:down
 ```
 
 ### Step 6: Access Application
@@ -248,10 +248,10 @@ curl https://your-domain.com
 
 ```bash
 # Run multiple instances behind load balancer
-docker-compose up -d --scale app=3
+docker compose --env-file .env.local -f infra/docker/docker-compose.yml up -d --scale app=3
 
 # Use Nginx/HAProxy for load balancing
-# Configure: docker-compose.yml
+# Configure: infra/docker/docker-compose.yml
 ```
 
 ---

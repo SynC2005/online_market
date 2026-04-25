@@ -127,8 +127,8 @@ vercel --prod
 
 ### Docker
 ```bash
-docker build -t fluid-market:latest .
-docker-compose up -d
+npm run docker:build
+npm run docker:up
 ```
 
 For complete deployment guide: [DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md)
