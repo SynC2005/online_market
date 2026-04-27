@@ -135,6 +135,8 @@ Dokumen ini menjelaskan fungsi tiap komponen utama dalam project `online_market`
 | `app/(frontend)/(admin)/admin/products/page.jsx`     | `/admin/products`      | Kelola produk.                                       |
 | `app/(frontend)/(admin)/admin/products/add/page.jsx` | `/admin/products/add`  | Tambah produk baru.                                  |
 | `app/api/auth/[...nextauth]/route.js`                | `/api/auth/*`          | Entry API NextAuth untuk login/logout/session.       |
+| `app/health/route.js`                                | `/health`              | Health check aplikasi untuk Docker/load balancer.    |
+| `app/api/monitoring/route.js`                        | `/api/monitoring`      | Detail monitoring runtime, environment, dan Supabase. |
 | `proxy.js`                                           | Sebelum route tertentu | Cek akses user/admin dan redirect jika belum sesuai. |
 
 ## Detail Frontend
@@ -154,6 +156,7 @@ Dokumen ini menjelaskan fungsi tiap komponen utama dalam project `online_market`
 | `backend/auth/nextauth.js`  | Konfigurasi NextAuth, provider Keycloak, callback JWT/session, dan sinkron profil ke Supabase. |
 | `backend/auth/routing.js`   | Logic proteksi route berdasarkan token dan role admin/user.                                    |
 | `backend/supabase/admin.js` | Supabase admin client memakai service role key. Hanya dipakai server-side.                     |
+| `backend/monitoring/status.js` | Logic monitoring untuk health check, runtime info, environment check, dan Supabase check.   |
 
 ## File Root Yang Tetap Di Luar Folder
 

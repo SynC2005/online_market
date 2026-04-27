@@ -118,6 +118,13 @@ npm run lint             # Run ESLint
 npx tsc --noEmit         # TypeScript type checking
 ```
 
+## Monitoring
+
+```bash
+curl http://localhost:3000/health          # Health check for Docker/load balancer
+curl http://localhost:3000/api/monitoring  # Runtime and dependency status
+```
+
 ## 🚀 Deployment
 
 ### Vercel (Recommended)
