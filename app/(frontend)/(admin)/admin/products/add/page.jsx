@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from 'react';
 import { ArrowLeft, Save, Image as ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -24,7 +22,6 @@ export default function AddProduct() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     const finalValue = name === 'category' ? value.toUpperCase() : value;
-    
     setFormData({ ...formData, [name]: finalValue });
   };
 
@@ -41,11 +38,10 @@ export default function AddProduct() {
       await createProduct(buildProductPayload(formData));
 
       alert('Produk berhasil ditambahkan!');
-      router.push('/admin/products'); 
-      
+      router.push('/admin/products');
     } catch (error) {
-      console.error('Error adding product:', error.message);
-      alert('Gagal menambahkan produk: ' + error.message);
+      console.error('Error adding product:', error);
+      alert('Terjadi kesalahan sistem.');
     } finally {
       setLoading(false);
     }
@@ -78,7 +74,7 @@ export default function AddProduct() {
             )}
           </div>
           <input 
-            type="text" 
+            type="url" 
             name="image"
             value={formData.image}
             onChange={handleChange}
@@ -99,6 +95,10 @@ export default function AddProduct() {
           />
         </div>
 
+<<<<<<< HEAD:app/(frontend)/(admin)/admin/products/add/page.jsx
+=======
+        {/* Input Kategori */}
+>>>>>>> c9e405ed75cfd24713f7994e6d8d816faa31156e:app/admin/products/add/page.jsx
         <div className="form-group">
           <label>Kategori *</label>
           <input 
@@ -111,15 +111,34 @@ export default function AddProduct() {
           />
         </div>
 
+<<<<<<< HEAD:app/(frontend)/(admin)/admin/products/add/page.jsx
+=======
+        {/* Input Harga - Diubah ke tipe Number */}
+>>>>>>> c9e405ed75cfd24713f7994e6d8d816faa31156e:app/admin/products/add/page.jsx
         <div className="form-group">
-          <label>Harga *</label>
+          <label>Harga (Rp) *</label>
           <input 
-            type="text" 
+            type="number" 
             name="price"
             value={formData.price}
             onChange={handleChange}
-            placeholder="cth: Rp 15.000" 
+            placeholder="cth: 15000 (Tanpa titik)" 
             className="form-input"
+            min="0"
+          />
+        </div>
+
+        {/* Input Stok (Quantity) - Diubah ke tipe Number */}
+        <div className="form-group">
+          <label>Stok Produk *</label>
+          <input 
+            type="number" 
+            name="quantity"
+            value={formData.quantity}
+            onChange={handleChange}
+            placeholder="cth: 50" 
+            className="form-input"
+            min="0"
           />
         </div>
 

@@ -9,7 +9,7 @@ export default function LoginPage() {
   
   const handleGoogleLogin = async () => {
     setIsSigningIn(true);
-    await signIn("keycloak", { callbackUrl: "/home" });
+    await signIn("keycloak", { callbackUrl: "/" });
   };
 
   return (
