@@ -4,7 +4,11 @@ export function handleAuthRouting(req, token) {
   const { pathname } = req.nextUrl;
 
   if (!token) {
-    if (pathname.startsWith("/admin") || pathname.startsWith("/home") || pathname.startsWith("/driver")) {
+    if (
+      pathname.startsWith("/admin") ||
+      pathname.startsWith("/home") ||
+      pathname.startsWith("/driver")
+    ) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
     return NextResponse.next();
