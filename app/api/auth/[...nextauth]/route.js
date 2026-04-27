@@ -10,7 +10,7 @@ const handler = NextAuth({
       issuer: process.env.KEYCLOAK_ISSUER,
       // 1. TAMBAHAN UNTUK MENGATASI TIMEOUT (Tunggu hingga 10 detik)
       httpOptions: {
-        timeout: 10000, 
+        timeout: 10000,
       },
       authorization: {
         params: {
@@ -29,17 +29,15 @@ const handler = NextAuth({
         else if (roles.includes("driver")) userRole = "driver";
 
         // 2. PERBAIKAN NAMA KOLOM SUPABASE (Menjadi full_name)
-        const { error } = await supabase
-          .from("profiles")
-          .upsert(
-            {
-              email: user.email,
-              full_name: user.name, // <-- Diperbarui sesuai gambar tabel Anda
-              role: userRole,
-              // Catatan: Saya menghapus 'image' karena di gambar tabel Anda tidak ada kolom 'image'
-            },
-            { onConflict: "email" }
-          );
+        const { error } = await supabase.from("profiles").upsert(
+          {
+            email: user.email,
+            full_name: user.name, // <-- Diperbarui sesuai gambar tabel Anda
+            role: userRole,
+            // Catatan: Saya menghapus 'image' karena di gambar tabel Anda tidak ada kolom 'image'
+          },
+          { onConflict: "email" },
+        );
 
         if (error) {
           console.error("Gagal menyimpan ke Supabase:", error.message);
@@ -65,7 +63,7 @@ const handler = NextAuth({
         session.user.roles = token.roles;
       }
       return session;
-    }
+    },
   },
 });
 
