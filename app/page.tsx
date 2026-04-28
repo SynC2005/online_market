@@ -2,25 +2,31 @@
 
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { getUserSession } from "@/app/actions/authActions";
 
 export default function Home() {
   const router = useRouter();
-  const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (status === "loading") return; // Wait for session to load
+    async function checkAuthAndRedirect() {
+      // Mengambil data sesi dari JWT kustom kita
+      const userPayload = await getUserSession();
 
-    // Redirect based on auth status and role
-    if (!session) {
-      router.push("/login");
-    } else {
-      // Check if user has admin role (default to false if not present)
-      const userRoles = (session.user as { roles?: string[] })?.roles ?? [];
-      const isAdmin = userRoles.includes("admin");
-      router.push(isAdmin ? "/admin" : "/home");
+      if (!userPayload) {
+        // Jika tidak ada token / belum login, lempar ke halaman login
+        router.push("/login");
+      } else {
+        // Cek apakah rolenya adalah admin
+        // (Di sistem baru kita, role adalah string tunggal, bukan array)
+        const isAdmin = userPayload.role === "admin";
+        
+        // Lempar ke halaman yang sesuai
+        router.push(isAdmin ? "/admin" : "/home");
+      }
     }
-  }, [session, status, router]);
+
+    checkAuthAndRedirect();
+  }, [router]);
 
   return (
     <div
@@ -33,7 +39,7 @@ export default function Home() {
         color: "#666",
       }}
     >
-      <p>Loading...</p>
+      <p>Mengarahkan...</p>
     </div>
   );
 }

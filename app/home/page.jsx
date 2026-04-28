@@ -12,7 +12,10 @@ import {
   User,
   MapPin,
 } from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
+
+// ❌ Hapus next-auth
+// ✅ Gunakan fungsi kustom kita
+import { getUserSession, logoutUser } from "@/app/actions/authActions";
 
 import BottomNav from "@/components/BottomNav";
 import ProductCard from "@/components/ProductCard";
@@ -31,7 +34,11 @@ const CATEGORIES = [
 
 export default function FluidMarket() {
   const router = useRouter();
-  const { data: session } = useSession();
+  
+  // State Sesi Kustom
+  const [userSession, setUserSession] = useState(null);
+  const [profileName, setProfileName] = useState(""); // Untuk menyimpan nama user
+
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,9 +57,28 @@ export default function FluidMarket() {
     location_link: "",
   });
 
+  // Load Session saat komponen dimuat
   useEffect(() => {
+    async function initSession() {
+      const payload = await getUserSession();
+      if (!payload) {
+        router.push("/login"); // Lempar ke login jika tidak ada tiket JWT
+        return;
+      }
+      setUserSession(payload);
+
+      // Ambil nama user untuk ditampilkan di menu
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("email", payload.email)
+        .single();
+      
+      if (data) setProfileName(data.full_name);
+    }
+    initSession();
     fetchProducts();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     let filtered = products;
@@ -85,11 +111,8 @@ export default function FluidMarket() {
   };
 
   const handleLogout = async () => {
-    await signOut({ redirect: false });
-    const keycloakLogoutUrl = "http://136.119.3.213.sslip.io:8080/realms/online-market/protocol/openid-connect/logout";
-    const redirectUri = encodeURIComponent(window.location.origin + "/login");
-    const clientId = "nextjs-app";
-    window.location.href = `${keycloakLogoutUrl}?client_id=${clientId}&post_logout_redirect_uri=${redirectUri}`;
+    await logoutUser(); // Hapus cookies JWT
+    router.push("/login"); // Arahkan ke halaman login
   };
 
   const addToCart = (product) => {
@@ -126,8 +149,9 @@ export default function FluidMarket() {
   }, 0);
 
   const handleCheckoutClick = async () => {
-    if (!session?.user?.email) {
-      alert("Silakan login terlebih dahulu!");
+    if (!userSession?.email) {
+      alert("Sesi telah habis, silakan login ulang!");
+      router.push("/login");
       return;
     }
     setIsLoadingCheckout(true);
@@ -135,7 +159,7 @@ export default function FluidMarket() {
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("email", session.user.email)
+        .eq("email", userSession.email)
         .single();
 
       if (error || !profile || !profile.address || !profile.phone || !profile.location_link) {
@@ -154,33 +178,36 @@ export default function FluidMarket() {
     e.preventDefault();
     setIsLoadingCheckout(true);
     try {
+      // ✅ UBAH DARI .update() MENJADI .upsert()
       const { error } = await supabase
         .from("profiles")
         .upsert({
-          email: session.user.email,
-          full_name: session.user.name,
-          phone: formData.phone,
-          address: formData.address,
-          location_link: formData.location_link,
-          role: "user",
-        }, { onConflict: "email" });
+        email: userSession.email,
+        phone: formData.phone,
+        address: formData.address,
+        location_link: formData.location_link,
+        full_name: profileName || "Pengguna",
+        // WAJIB: Masukkan role agar lolos Policy RLS
+        role: userSession.role 
+      }, { onConflict: "email" });
 
       if (error) throw error;
+      
       setShowProfileForm(false);
-      processOrder({ ...formData, email: session.user.email });
+      // Lanjut ke Midtrans
+      processOrder({ ...formData, email: userSession.email });
     } catch (err) {
       alert("Gagal menyimpan: " + err.message);
       setIsLoadingCheckout(false);
     }
   };
 
-  
   // --- LOGIKA PEMROSESAN PESANAN DI SERVER ---
   const processOrder = async (userProfile) => {
     setIsLoadingCheckout(true);
     
     // Panggil fungsi Backend
-    const result = await processCheckoutBackend(session.user.email, cartItems);
+    const result = await processCheckoutBackend(userSession.email, cartItems);
 
     if (result.success && result.paymentUrl) {
       // 1. Kosongkan keranjang di layar
@@ -210,40 +237,37 @@ export default function FluidMarket() {
 
           {showMenu && (
             <div className="fm-user-menu">
-              {session && (
+              {userSession && (
                 <div className="fm-user-info">
                   <div className="fm-user-info-flex">
-                    {session.user?.image ? (
-                      <img src={session.user.image} alt="User" className="fm-avatar" />
-                    ) : (
-                      <div className="fm-avatar-placeholder"><User size={24} /></div>
-                    )}
+                    <div className="fm-avatar-placeholder"><User size={24} /></div>
                     <div>
-                      <p className="fm-user-name">{session.user?.name || "User"}</p>
-                      <p className="fm-user-email">{session.user?.email}</p>
+                      <p className="fm-user-name">{profileName || "Pengguna Fluid"}</p>
+                      <p className="fm-user-email">{userSession.email}</p>
                     </div>
                   </div>
                 </div>
               )}
               <div className="fm-menu-items-container">
                 <button 
-  onClick={() => {
-    setShowMenu(false);
-    router.push('/home/profile'); // Menuju ke halaman profil
-  }} 
-  className="fm-menu-btn"
->
-  <User size={18} /> My Profile
-</button>
-                <button onClick={() => setShowMenu(false)} className="fm-menu-btn"><ShoppingCart size={18} /> My Orders</button>
-                <button onClick={() => setShowMenu(false)} className="fm-menu-btn"><Heart size={18} /> Favorites</button>
+                  onClick={() => {
+                    setShowMenu(false);
+                    router.push('/home/profile'); // Menuju ke halaman profil
+                  }} 
+                  className="fm-menu-btn"
+                >
+                  <User size={18} /> My Profile
+                </button>
+                <button onClick={() => { setShowMenu(false); router.push('/home/order_list'); }} className="fm-menu-btn"><ShoppingCart size={18} /> My Orders</button>
                 <div className="fm-menu-divider" />
                 <button onClick={handleLogout} className="fm-logout-btn"><LogOut size={18} /> Logout</button>
               </div>
             </div>
           )}
           {showMenu && <div onClick={() => setShowMenu(false)} className="fm-menu-backdrop" />}
+          
           <h1 className="fm-logo">Fluid Market</h1>
+          
           <div style={{ position: "relative" }}>
             <button onClick={() => setShowCart(!showCart)} className="fm-icon-btn"><ShoppingCart size={24} color="#333" /></button>
             {cartItems.length > 0 && <span className="fm-cart-badge">{cartItems.reduce((sum, item) => sum + item.quantity, 0)}</span>}
@@ -282,14 +306,19 @@ export default function FluidMarket() {
             </div>
             <div className="cart-body">
               {cartItems.map((item) => (
-                <div key={item.id} className="cart-item-card">
-                    <p>{item.name} x {item.quantity}</p>
+                <div key={item.id} className="cart-item-card" style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #eee' }}>
+                    <p>{item.name}</p>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <button onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)} style={{ padding: '2px 8px' }}>-</button>
+                      <span>{item.quantity}</span>
+                      <button onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)} style={{ padding: '2px 8px' }}>+</button>
+                    </div>
                 </div>
               ))}
             </div>
             {cartItems.length > 0 && (
               <div className="cart-footer">
-                <p>Total: Rp {cartTotal.toLocaleString("id-ID")}</p>
+                <p style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '10px' }}>Total: Rp {cartTotal.toLocaleString("id-ID")}</p>
                 <button onClick={handleCheckoutClick} disabled={isLoadingCheckout} className="cart-checkout-btn">
                   {isLoadingCheckout ? "Memproses Keamanan..." : "Proceed to Checkout"}
                 </button>

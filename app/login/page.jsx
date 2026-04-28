@@ -1,16 +1,43 @@
 "use client";
 
-import React from 'react';
-import { Store, Rocket, Tag } from 'lucide-react';
-// IMPORT signIn dari NextAuth sebagai pengganti Supabase Auth
-import { signIn } from 'next-auth/react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Store, Rocket, Tag, Loader2 } from 'lucide-react';
+// IMPORT SERVER ACTION KITA
+import { loginUser } from '@/app/actions/authActions'; 
 
 export default function LoginPage() {
-  
-  // Fungsi untuk memicu Login via Keycloak
-  const handleGoogleLogin = () => {
-    // Ubah callbackUrl menjadi "/" (root) agar Middleware bisa memilah rutenya
-    signIn("keycloak", { callbackUrl: "/" });
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMsg('');
+    setIsLoading(true);
+
+    try {
+      // Panggil fungsi login kustom kita
+      const response = await loginUser(email, password);
+
+      if (response.success) {
+        // Redirect berdasarkan Role yang didapat dari JWT
+        if (response.role === 'admin') {
+          router.push('/admin/');
+        } else {
+          router.push('/home'); // Lempar ke beranda untuk user biasa/customer
+        }
+      } else {
+        // Tampilkan pesan error dari server (misal: password salah)
+        setErrorMsg(response.message);
+      }
+    } catch (error) {
+      setErrorMsg('Terjadi kesalahan koneksi.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -19,7 +46,7 @@ export default function LoginPage() {
         <div className="login-logo-box">
           <Store size={32} color="white" />
         </div>
-        <h1 className="login-title">Azure Market</h1>
+        <h1 className="login-title">Fluid Market</h1>
         <p className="login-subtitle">Your daily fresh essentials, delivered.</p>
       </div>
 
@@ -27,19 +54,57 @@ export default function LoginPage() {
         <h2>Welcome back!</h2>
         <p className="welcome-desc">Please sign in to access your orders and offers.</p>
 
-        {/* Event onClick memanggil fungsi handleGoogleLogin yang baru */}
-        <button className="google-sign-in-btn" onClick={handleGoogleLogin}>
-          <svg className="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-            <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
-            <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
-            <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
-            <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
-          </svg>
-          Sign in with Google
-        </button>
+        {/* --- TAMPILAN ERROR JIKA ADA --- */}
+        {errorMsg && (
+          <div style={{ backgroundColor: '#fee2e2', color: '#dc2626', padding: '10px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px', textAlign: 'center' }}>
+            {errorMsg}
+          </div>
+        )}
 
-        <div className="login-divider">
-          <span>AZURE MARKET EXPERIENCE</span>
+        {/* --- FORM LOGIN EMAIL & PASSWORD --- */}
+        <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <input
+            type="email"
+            placeholder="Email Address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '16px' }}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '16px' }}
+          />
+          
+          <button 
+            type="submit" 
+            disabled={isLoading}
+            style={{ 
+              backgroundColor: '#3b82f6', 
+              color: 'white', 
+              padding: '12px', 
+              borderRadius: '8px', 
+              fontSize: '16px', 
+              fontWeight: 'bold', 
+              border: 'none', 
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '8px',
+              marginTop: '8px'
+            }}
+          >
+            {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Sign In'}
+          </button>
+        </form>
+
+        <div className="login-divider" style={{ marginTop: '24px' }}>
+          <span>FLUID MARKET EXPERIENCE</span>
         </div>
 
         <div className="features-row">

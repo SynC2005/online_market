@@ -2,16 +2,20 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, FileText, Truck, LogOut } from 'lucide-react'; // Tambah LogOut
-import { signOut } from 'next-auth/react'; // Tambah signOut
+import { usePathname, useRouter } from 'next/navigation'; // Tambahkan useRouter di sini
+import { Home, FileText, Truck, LogOut } from 'lucide-react';
+import { logoutUser } from '@/app/actions/authActions'; // Menggunakan fungsi kustom kita
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter(); // Inisialisasi router untuk pindah halaman
 
-  const handleLogout = () => {
-    // Menghapus sesi dan mengarahkan kembali ke halaman login
-    signOut({ callbackUrl: '/login' });
+  const handleLogout = async () => {
+    // 1. Panggil fungsi logout dari server action (akan menghapus cookies dan sesi supabase)
+    await logoutUser();
+    
+    // 2. Lempar pengguna kembali ke halaman login
+    router.push('/login');
   };
 
   return (
@@ -47,10 +51,18 @@ export default function BottomNav() {
       <button 
         onClick={handleLogout}
         className="nav-item logout-btn"
-        style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+        style={{ 
+          background: 'none', 
+          border: 'none', 
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '4px' // Sedikit jarak antara icon dan teks agar rapi
+        }}
       >
         <LogOut size={24} color="#ef4444" /> {/* Warna merah agar terlihat sebagai aksi logout */}
-        <span style={{ color: '#ef4444' }}>Logout</span>
+        <span style={{ color: '#ef4444', fontSize: '12px' }}>Logout</span>
       </button>
     </nav>
   );

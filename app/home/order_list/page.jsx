@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Menu,
@@ -10,7 +9,8 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import React, { useEffect, useState } from "react";
+import { getUserSession } from "@/app/actions/authActions";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/utils/supabase";
 
