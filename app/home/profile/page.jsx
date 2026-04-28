@@ -2,240 +2,258 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MapPin, Edit3, LogOut, User, Mail, Phone } from "lucide-react";
+import {
+  Menu,
+  ShoppingBag,
+  Sparkles,
+  Truck,
+  CheckCircle,
+  XCircle,
+  Loader2,
+} from "lucide-react";
 import { supabase } from "@/utils/supabase";
-import { getUserSession, logoutUser } from "@/app/actions/authActions"; // Gunakan fungsi kustom kita
+import BottomNav from "@/components/BottomNav";
 
-export default function ProfilePage() {
+// Sample order data (fallback jika database kosong)
+const sampleOrdersData = [
+  {
+    id: "#ORD-8921",
+    date: "Oct 24, 2023 • 14:30 PM",
+    status: "IN_DELIVERY",
+    items: [
+      { emoji: "🥑", color: "#e5f3cc", name: "Hass Avocado" },
+      { emoji: "🥛", color: "#e0f2fe", name: "Whole Milk" },
+    ],
+    itemsTotal: 4,
+    totalAmount: "Rp 32.400",
+    action: "Track Order",
+  },
+  {
+    id: "#ORD-8814",
+    date: "Oct 21, 2023 • 09:15 AM",
+    status: "COMPLETED",
+    items: [
+      { emoji: "🍌", color: "#fef08a", name: "Organic Bananas" },
+      { emoji: "🍞", color: "#ffedd5", name: "Grocery Bundle" },
+    ],
+    itemsTotal: 2,
+    totalAmount: "Rp 18.900",
+    action: "Reorder",
+  },
+  {
+    id: "#ORD-8702",
+    date: "Oct 18, 2023 • 18:45 PM",
+    status: "CANCELLED",
+    items: [{ emoji: "🍫", color: "#e5e7eb", name: "Dark Artisan Chocolates" }],
+    itemsTotal: 1,
+    totalAmount: "Rp 12.000",
+    action: "View Details",
+  },
+];
+
+export default function OrderList() {
   const router = useRouter();
-  
-  // State untuk menyimpan JWT Payload
-  const [userSession, setUserSession] = useState(null);
+  const [activeTab, setActiveTab] = useState("ongoing");
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  
-  // State untuk data dari database (ditambah full_name karena NextAuth sudah tidak ada)
-  const [profileData, setProfileData] = useState({
-    full_name: "",
-    phone: "",
-    address: "",
-    location_link: "",
-  });
-
-  const [formData, setFormData] = useState({
-    full_name: "",
-    phone: "",
-    address: "",
-    location_link: "",
-  });
 
   useEffect(() => {
-    async function initProfile() {
-      // 1. Ambil sesi JWT
-      const payload = await getUserSession();
-      
-      // 2. Tendang ke login jika tidak ada token
-      if (!payload) {
-        router.push("/login");
-        return;
-      }
+    fetchOrders();
+  }, []);
 
-      setUserSession(payload);
-      fetchUserProfile(payload.email);
-    }
-
-    initProfile();
-  }, [router]);
-
-  const fetchUserProfile = async (email) => {
+  const fetchOrders = async () => {
     try {
       setLoading(true);
-      // Ambil juga full_name dari database
       const { data, error } = await supabase
-        .from("profiles")
-        .select("full_name, phone, address, location_link")
-        .eq("email", email)
-        .single();
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      if (data && !error) {
-        setProfileData(data);
-        setFormData(data); 
+      if (error || !data || data.length === 0) {
+        setOrders(sampleOrdersData);
+      } else {
+        setOrders(data);
       }
-    } catch (error) {
-      console.error("Error fetching profile:", error.message);
+    } catch {
+      setOrders(sampleOrdersData);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-
-    try {
-      // Gunakan UPDATE, karena data profil pasti sudah terbuat saat Register
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          full_name: formData.full_name,
-          phone: formData.phone,
-          address: formData.address,
-          location_link: formData.location_link,
-        })
-        .eq("email", userSession.email); // Kunci pembaruan berdasarkan email
-
-      if (error) throw error;
-
-      setProfileData(formData);
-      setIsEditing(false);
-      alert("Profil berhasil diperbarui!");
-    } catch (err) {
-      alert("Gagal menyimpan perubahan: " + err.message);
-    } finally {
-      setSaving(false);
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case "IN_DELIVERY":
+        return "bg-blue-50 text-azure-primary border-blue-100";
+      case "COMPLETED":
+        return "bg-emerald-50 text-emerald-600 border-emerald-100";
+      case "CANCELLED":
+        return "bg-red-50 text-red-500 border-red-100";
+      default:
+        return "bg-slate-50 text-slate-500 border-slate-100";
     }
   };
 
-  const handleLogout = async () => {
-    // Gunakan fungsi logout kustom (Tanpa Keycloak!)
-    await logoutUser();
-    router.push('/login');
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "IN_DELIVERY": return <Truck size={14} />;
+      case "COMPLETED": return <CheckCircle size={14} />;
+      case "CANCELLED": return <XCircle size={14} />;
+      default: return null;
+    }
   };
 
-  if (loading) {
-    return <div style={{ padding: "40px", textAlign: "center", color: "#64748b" }}>Memuat profil...</div>;
-  }
+  const ongoingOrders = orders.filter(o => o.status === "IN_DELIVERY");
+  const historyOrders = orders.filter(o => ["COMPLETED", "CANCELLED"].includes(o.status));
+  const displayOrders = activeTab === "ongoing" ? ongoingOrders : historyOrders;
 
   return (
-    <div className="app-container profile-container">
+    <div className="min-h-screen bg-azure-bg pb-24 max-w-[420px] mx-auto font-sans relative">
+      
       {/* Header */}
-      <header className="profile-header">
-        <button onClick={() => router.back()} className="fm-icon-btn" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-          <ArrowLeft size={24} color="#0b57cf" />
-        </button>
-        <h1 className="profile-title">Profile</h1>
+      <header className="p-6 pb-2 sticky top-0 bg-azure-bg z-40">
+        <div className="flex justify-between items-center mb-6">
+          <Menu size={24} className="text-slate-800 cursor-pointer" />
+          <h1 className="text-xl font-black text-slate-900 tracking-tight">My Orders</h1>
+          <ShoppingBag size={24} className="text-slate-800 cursor-pointer" />
+        </div>
+
+        {/* Tabs Modern */}
+        <div className="flex border-b border-slate-200">
+          <button
+            onClick={() => setActiveTab("ongoing")}
+            className={`flex-1 py-4 text-sm font-bold transition-all relative ${
+              activeTab === "ongoing" ? "text-azure-primary" : "text-slate-400"
+            }`}
+          >
+            Ongoing ({ongoingOrders.length})
+            {activeTab === "ongoing" && (
+              <div className="absolute bottom-0 left-0 w-full h-1 bg-azure-primary rounded-t-full shadow-[0_-2px_10px_rgba(0,119,190,0.3)]"></div>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`flex-1 py-4 text-sm font-bold transition-all relative ${
+              activeTab === "history" ? "text-azure-primary" : "text-slate-400"
+            }`}
+          >
+            History ({historyOrders.length})
+            {activeTab === "history" && (
+              <div className="absolute bottom-0 left-0 w-full h-1 bg-azure-primary rounded-t-full shadow-[0_-2px_10px_rgba(0,119,190,0.3)]"></div>
+            )}
+          </button>
+        </div>
       </header>
 
-      {/* Avatar & User Info */}
-      <section className="profile-avatar-section">
-        <div className="profile-avatar-ring">
-          <div className="profile-avatar-placeholder">
-            <User size={48} />
+      {/* Order List */}
+      <div className="px-6 mt-4 space-y-4">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+            <Loader2 size={32} className="animate-spin mb-2" />
+            <p className="text-xs font-bold tracking-widest uppercase">Loading Orders...</p>
           </div>
-        </div>
-        {/* Mengambil nama dari database, bukan dari session */}
-        <h2 className="profile-name-text">{profileData.full_name || "Pengguna Fluid"}</h2>
-        <p className="profile-email-text">
-          <Mail size={14} /> {userSession?.email}
-        </p>
-      </section>
+        ) : displayOrders.length > 0 ? (
+          displayOrders.map((order, index) => (
+            <div
+              key={index}
+              className={`bg-white rounded-[32px] p-5 shadow-sm border border-slate-100 transition-all active:scale-[0.98] ${
+                order.status === "CANCELLED" ? "opacity-75 grayscale-[0.3]" : ""
+              }`}
+            >
+              {/* Order Header */}
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                    Order ID <span className="text-slate-900">{order.id}</span>
+                  </p>
+                  <p className="text-[11px] font-medium text-slate-400">{order.date}</p>
+                </div>
+                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tighter border ${getStatusStyle(order.status)}`}>
+                  {getStatusIcon(order.status)}
+                  {order.status.replace("_", " ")}
+                </div>
+              </div>
 
-      {/* Alamat & Kontak Card */}
-      <section className="profile-card">
-        {isEditing ? (
-          /* --- MODE EDIT --- */
-          <form onSubmit={handleSave} className="profile-edit-form">
-            <div className="profile-card-header" style={{ marginBottom: "8px" }}>
-              <div className="profile-card-icon"><Edit3 size={20} /></div>
-              <div>
-                <p className="profile-card-label">Mode Edit</p>
-                <p className="profile-card-value">Perbarui Data Anda</p>
+              {/* Items Preview */}
+              <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-2xl mb-4 border border-slate-100">
+                <div className="flex -space-x-3">
+                  {order.items.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-xl border-2 border-white shadow-sm"
+                      style={{ backgroundColor: item.color }}
+                    >
+                      {item.emoji}
+                    </div>
+                  ))}
+                  {order.itemsTotal > order.items.length && (
+                    <div className="w-10 h-10 rounded-xl bg-slate-200 flex items-center justify-center text-[10px] font-black text-slate-500 border-2 border-white">
+                      +{order.itemsTotal - order.items.length}
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-slate-800 truncate">
+                    {order.items.map(i => i.name).join(", ")}
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                    {order.itemsTotal} items
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total Amount</p>
+                  <p className="text-lg font-black text-azure-primary">{order.totalAmount}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    if (order.status === "IN_DELIVERY") {
+                      router.push(`/home/delivery?orderId=${order.id}`);
+                    }
+                  }}
+                  className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 ${
+                    order.status === "CANCELLED" 
+                    ? "bg-slate-100 text-slate-400" 
+                    : "bg-azure-primary text-white shadow-blue-500/20"
+                  }`}
+                >
+                  {order.action}
+                </button>
               </div>
             </div>
-
-            {/* Tambahan Form untuk Nama Lengkap */}
-            <div className="form-group" style={{ marginBottom: "12px" }}>
-              <label className="form-label">Nama Lengkap</label>
-              <input 
-                type="text" required
-                value={formData.full_name || ""}
-                onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-                className="form-input"
-                style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: "12px" }}>
-              <label className="form-label">Nomor WhatsApp</label>
-              <input 
-                type="text" required
-                value={formData.phone || ""}
-                onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                className="form-input"
-                style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: "12px" }}>
-              <label className="form-label">Alamat Lengkap</label>
-              <textarea 
-                required rows="3"
-                value={formData.address || ""}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
-                className="form-input"
-                style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: "16px" }}>
-              <label className="form-label form-label-icon" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <MapPin size={14} color="#ef4444" /> Link Google Maps
-              </label>
-              <input 
-                type="url" required
-                value={formData.location_link || ""}
-                onChange={(e) => setFormData({...formData, location_link: e.target.value})}
-                className="form-input"
-                style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
-              />
-            </div>
-
-            <div className="form-actions" style={{ display: 'flex', gap: '8px' }}>
-              <button type="button" onClick={() => setIsEditing(false)} className="btn-cancel" disabled={saving} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc', background: 'white', cursor: 'pointer' }}>
-                Batal
-              </button>
-              <button type="submit" className="btn-submit" disabled={saving} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: 'none', background: '#0b57cf', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}>
-                {saving ? "Menyimpan..." : "Simpan"}
-              </button>
-            </div>
-          </form>
+          ))
         ) : (
-          /* --- MODE TAMPILAN (VIEW) --- */
-          <>
-            <div className="profile-card-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              <div className="profile-card-icon" style={{ padding: '8px', background: '#eff6ff', borderRadius: '50%', color: '#0b57cf' }}>
-                <MapPin size={20} />
-              </div>
-              <div>
-                <p className="profile-card-label" style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>Primary Delivery Address</p>
-                <p className="profile-card-value" style={{ fontWeight: 'bold', margin: 0 }}>Home</p>
-              </div>
-            </div>
-
-            <p className="profile-address-text" style={{ fontSize: '14px', lineHeight: '1.5', marginBottom: '16px' }}>
-              {profileData.address || <span style={{ color: "#ef4444", fontStyle: "italic" }}>Alamat belum diatur.</span>}
+          <div className="text-center py-20 bg-white rounded-[40px] border-2 border-dashed border-slate-100">
+            <ShoppingBag size={48} className="mx-auto text-slate-200 mb-4" />
+            <p className="text-sm font-bold text-slate-400">
+              {activeTab === "ongoing" ? "No ongoing orders" : "No order history"}
             </p>
-
-            {profileData.phone && (
-              <p className="profile-address-text" style={{ marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px", fontWeight: "600", fontSize: '14px' }}>
-                <Phone size={16} color="#64748b" /> {profileData.phone}
-              </p>
-            )}
-
-            <button onClick={() => setIsEditing(true)} className="btn-change-address" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 'bold', color: '#0f172a' }}>
-              <Edit3 size={18} /> Ubah Profil & Alamat
-            </button>
-          </>
+          </div>
         )}
+      </div>
+
+      {/* Restock Banner (Azure Tertiary Styled) */}
+      <section className="mx-6 mt-10 mb-8 bg-gradient-to-br from-azure-tertiary to-purple-700 rounded-[32px] p-8 text-center text-white relative overflow-hidden shadow-xl shadow-purple-500/20">
+        <div className="relative z-10">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Sparkles size={16} className="text-purple-200" />
+            <span className="text-[10px] font-black uppercase tracking-[3px]">Weekly Routine</span>
+          </div>
+          <h2 className="text-2xl font-black mb-2 leading-tight">Restock your<br/>favorites?</h2>
+          <p className="text-[11px] opacity-80 mb-6 font-medium">Your frequent items are ready for a quick checkout.</p>
+          <button className="bg-white text-azure-tertiary px-6 py-3 rounded-full text-xs font-black shadow-lg active:scale-95 transition-transform uppercase tracking-wider">
+            Order Fresh Milk & Bread
+          </button>
+          <div className="text-4xl mt-6 animate-bounce">🥖🥛</div>
+        </div>
+        {/* Dekorasi Background */}
+        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
       </section>
 
-      {/* Tombol Logout di Bawah */}
-      <div className="profile-signout-wrapper" style={{ marginTop: '24px', padding: '0 20px' }}>
-        <button onClick={handleLogout} className="btn-signout" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: 'none', background: '#fef2f2', color: '#ef4444', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
-          <LogOut size={20} /> Sign Out
-        </button>
-      </div>
+      <BottomNav />
     </div>
   );
 }

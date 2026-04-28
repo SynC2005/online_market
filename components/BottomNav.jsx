@@ -2,28 +2,26 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation'; // Tambahkan useRouter di sini
+import { usePathname, useRouter } from 'next/navigation';
 import { Home, FileText, Truck, LogOut } from 'lucide-react';
-import { logoutUser } from '@/app/actions/authActions'; // Menggunakan fungsi kustom kita
+import { logoutUser } from '@/app/actions/authActions'; 
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const router = useRouter(); // Inisialisasi router untuk pindah halaman
+  const router = useRouter(); 
 
   const handleLogout = async () => {
-    // 1. Panggil fungsi logout dari server action (akan menghapus cookies dan sesi supabase)
     await logoutUser();
-    
-    // 2. Lempar pengguna kembali ke halaman login
     router.push('/login');
   };
 
   return (
-    <nav className="bottom-nav">
+    <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-[380px] bg-white flex justify-around p-3 rounded-full shadow-[0_10px_25px_rgba(0,0,0,0.05)] z-[999]">
+      
       {/* Home */}
       <Link 
         href="/home" 
-        className={`nav-item ${pathname === '/home' ? 'active' : ''}`}
+        className={`flex flex-col items-center gap-1 px-4 py-2 rounded-2xl text-[11px] font-medium transition-all ${pathname === '/home' ? 'text-azure-primary bg-blue-50' : 'text-slate-400 hover:text-slate-600'}`}
       >
         <Home size={24} />
         <span>Home</span>
@@ -32,7 +30,7 @@ export default function BottomNav() {
       {/* Orders */}
       <Link 
         href="/home/order_list" 
-        className={`nav-item ${pathname === '/home/order_list' ? 'active' : ''}`}
+        className={`flex flex-col items-center gap-1 px-4 py-2 rounded-2xl text-[11px] font-medium transition-all ${pathname === '/home/order_list' ? 'text-azure-primary bg-blue-50' : 'text-slate-400 hover:text-slate-600'}`}
       >
         <FileText size={24} />
         <span>Orders</span>
@@ -41,7 +39,7 @@ export default function BottomNav() {
       {/* Delivery */}
       <Link 
         href="/home/delivery" 
-        className={`nav-item ${pathname === '/home/delivery' ? 'active' : ''}`}
+        className={`flex flex-col items-center gap-1 px-4 py-2 rounded-2xl text-[11px] font-medium transition-all ${pathname === '/home/delivery' ? 'text-azure-primary bg-blue-50' : 'text-slate-400 hover:text-slate-600'}`}
       >
         <Truck size={24} />
         <span>Delivery</span>
@@ -50,20 +48,12 @@ export default function BottomNav() {
       {/* Tombol Logout */}
       <button 
         onClick={handleLogout}
-        className="nav-item logout-btn"
-        style={{ 
-          background: 'none', 
-          border: 'none', 
-          cursor: 'pointer',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '4px' // Sedikit jarak antara icon dan teks agar rapi
-        }}
+        className="flex flex-col items-center gap-1 px-4 py-2 rounded-2xl text-[11px] font-medium text-red-500 hover:bg-red-50 transition-all outline-none"
       >
-        <LogOut size={24} color="#ef4444" /> {/* Warna merah agar terlihat sebagai aksi logout */}
-        <span style={{ color: '#ef4444', fontSize: '12px' }}>Logout</span>
+        <LogOut size={24} /> 
+        <span>Logout</span>
       </button>
+
     </nav>
   );
 }

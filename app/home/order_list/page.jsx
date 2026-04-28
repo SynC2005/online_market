@@ -76,44 +76,75 @@ const sampleOrdersData = [
 ];
 
 export default function OrderList() {
-  const { data: session } = useSession();
   const router = useRouter();
+  const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState("ongoing");
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchOrders();
-  }, [session]);
-
-  const fetchOrders = async () => {
+  async function init() {
     try {
-      setLoading(true);
-      // Try to fetch from Supabase
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        // If table doesn't exist or other error, silently use sample data
-        if (!error.message.includes("Could not find the table")) {
-          console.error("Error fetching orders:", error.message);
-        }
-        setOrders(sampleOrdersData);
-      } else if (data && data.length > 0) {
-        setOrders(data);
-      } else {
-        // No orders in database, use sample data
-        setOrders(sampleOrdersData);
+      const sessionData = await getUserSession(); // Ambil JWT dari cookie
+      
+      if (!sessionData) {
+        router.push("/login");
+        return;
       }
-    } catch {
-      // Silently fail and use sample data
-      setOrders(sampleOrdersData);
-    } finally {
+
+      setUser(sessionData); // Simpan hasil session ke state 'user'
+      fetchOrders(sessionData.email); // Langsung panggil fetch dengan emailnya
+    } catch (err) {
+      console.error("Auth init error:", err);
       setLoading(false);
     }
-  };
+  }
+
+  init();
+}, []); // Kosongkan dependency array agar hanya jalan 1x saat mount
+
+// 3. Fungsi fetchOrders yang menerima parameter email
+const fetchOrders = async (userEmail) => {
+  if (!userEmail) return; // Cegah pemanggilan tanpa email
+
+  try {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("orders")
+      .select(`
+        order_id, 
+        created_at, 
+        status, 
+        total_amount, 
+        order_items(product_name, quantity, price_at_purchase)
+      `)
+      .eq("user_email", userEmail) // Keamanan: Hanya ambil milik user ini
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      // Mapping data agar sesuai dengan UI kartu pesanan
+      const formatted = data.map(order => ({
+        id: order.order_id,
+        date: new Date(order.created_at).toLocaleString('id-ID'),
+        status: order.status,
+        totalAmount: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(order.total_amount),
+        itemsTotal: order.order_items.length,
+        items: order.order_items.slice(0, 2).map(i => ({ name: i.product_name, emoji: "📦", color: "#f1f5f9" })),
+        action: order.status === "IN_DELIVERY" ? "Track Order" : "Reorder"
+      }));
+      setOrders(formatted);
+    } else {
+      setOrders(sampleOrdersData);
+    }
+  } catch (err) {
+    console.error("Fetch orders error:", err);
+    setOrders(sampleOrdersData);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const getStatusIconColor = (status) => {
     switch (status) {

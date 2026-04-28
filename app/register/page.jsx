@@ -29,43 +29,56 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-header">
-        <div className="login-logo-box">
+    <div className="min-h-screen bg-azure-bg flex flex-col items-center px-5 pt-10 pb-5 relative max-w-[420px] mx-auto font-sans">
+      
+      {/* Header & Logo */}
+      <div className="flex flex-col items-center text-center mt-10 mb-8">
+        <div className="w-16 h-16 bg-azure-primary rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/30">
           <Store size={32} color="white" />
         </div>
-        <h1 className="login-title">Fluid Market</h1>
-        <p className="login-subtitle">Join us for fresh essentials delivered to your door.</p>
+        <h1 className="text-2xl font-extrabold text-slate-900 mb-1">Azure Market</h1>
+        <p className="text-[13px] text-slate-500 px-4">Join us for fresh essentials delivered to your door.</p>
       </div>
 
-      <div className="login-card">
-        <Link href="/login" className="back-link">
+      {/* Register Card */}
+      <div className="bg-white w-full rounded-[32px] px-6 py-8 shadow-xl shadow-slate-200/50 flex flex-col z-10">
+        
+        <Link 
+          href="/login" 
+          className="flex items-center gap-2 text-azure-primary text-[13px] font-bold mb-6 hover:translate-x-[-4px] transition-transform w-fit"
+        >
           <ArrowLeft size={16} /> Back to Login
         </Link>
         
-        <h2>Create Account</h2>
-        <p className="welcome-desc">Fill in the details below to get started.</p>
+        <h2 className="text-xl text-slate-900 font-bold mb-1">Create Account</h2>
+        <p className="text-[13px] text-slate-500 mb-8">Fill in the details below to get started.</p>
 
+        {/* Notifikasi Alert */}
         {msg.text && (
-          <div className={`alert-msg ${msg.type === 'success' ? 'alert-success' : 'alert-error'}`}>
+          <div className={`w-full p-4 rounded-xl mb-6 text-sm font-medium border text-center transition-all ${
+            msg.type === 'success' 
+              ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+              : 'bg-red-50 text-red-600 border-red-100'
+          }`}>
             {msg.text}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        {/* Form Registration */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <input
             name="fullName"
             type="text"
             placeholder="Full Name"
             required
-            className="form-input"
+            className="w-full p-3.5 rounded-xl border border-slate-200 text-[15px] outline-none focus:border-azure-primary focus:ring-2 focus:ring-blue-100 transition-all text-slate-800 placeholder-slate-400"
           />
           <input
             name="email"
             type="email"
             placeholder="Email Address"
             required
-            className="form-input"
+            className="w-full p-3.5 rounded-xl border border-slate-200 text-[15px] outline-none focus:border-azure-primary focus:ring-2 focus:ring-blue-100 transition-all text-slate-800 placeholder-slate-400"
           />
           <input
             name="password"
@@ -73,37 +86,46 @@ export default function RegisterPage() {
             placeholder="Password (min. 6 characters)"
             required
             minLength={6}
-            className="form-input"
+            className="w-full p-3.5 rounded-xl border border-slate-200 text-[15px] outline-none focus:border-azure-primary focus:ring-2 focus:ring-blue-100 transition-all text-slate-800 placeholder-slate-400"
           />
           
-          <button type="submit" disabled={isLoading} className="submit-btn">
+          <button 
+            type="submit" 
+            disabled={isLoading} 
+            className="w-full bg-azure-primary hover:bg-azure-secondary text-white p-3.5 rounded-xl text-[15px] font-bold flex justify-center items-center gap-2 mt-4 transition-all active:scale-[0.98] disabled:opacity-70 shadow-md shadow-blue-500/20"
+          >
             {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Create Account'}
           </button>
         </form>
 
-        <p className="auth-switch-text terms-text">
-          Already have an account? <Link href="/login" className="auth-link">Sign In</Link>
+        <p className="text-center text-[13px] text-slate-500 mt-6 font-medium">
+          Already have an account? <Link href="/login" className="text-azure-primary font-bold hover:underline">Sign In</Link>
         </p>
 
-        {/* Memberikan sedikit jarak ekstra menggunakan inline style khusus layout atau Anda bisa membuat class margin */}
-        <div className="login-divider" style={{ marginTop: '24px' }}>
-          <span>FLUID MARKET EXPERIENCE</span>
+        {/* Divider Azure Experience */}
+        <div className="relative w-full mt-8 mb-6 flex items-center justify-center">
+          <div className="absolute w-full h-px bg-slate-200"></div>
+          <span className="relative bg-white px-3 text-[9px] font-bold text-slate-400 tracking-widest uppercase">
+            Azure Market Experience
+          </span>
         </div>
 
-        <div className="features-row">
-          <div className="feature-chip express-chip">
-            <Rocket size={16} />
+        {/* Feature Chips */}
+        <div className="flex w-full gap-3 mb-4">
+          <div className="flex-1 flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-blue-50 text-azure-primary text-[11px] font-semibold transition-transform hover:scale-105 cursor-default">
+            <Rocket size={18} />
             <span>Express Delivery</span>
           </div>
-          <div className="feature-chip points-chip">
-            <Tag size={16} />
+          <div className="flex-1 flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-purple-50 text-azure-tertiary text-[11px] font-semibold transition-transform hover:scale-105 cursor-default">
+            <Tag size={18} />
             <span>Points Rewards</span>
           </div>
         </div>
       </div>
 
-      <div className="login-footer">
-        PREMIUM GROCERY MARKETPLACE
+      {/* Footer */}
+      <div className="absolute bottom-6 text-[9px] font-bold text-slate-400 tracking-[1.5px] uppercase">
+        Premium Grocery Marketplace
       </div>
     </div>
   );

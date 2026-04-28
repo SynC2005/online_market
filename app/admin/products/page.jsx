@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { 
-  ArrowLeft, Plus, Search, Trash2, Pencil 
+  ArrowLeft, Plus, Search, Trash2, Pencil, PackageOpen, Loader2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabase';
@@ -14,8 +14,6 @@ export default function ManageProducts() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Semua');
-  
-  // State baru untuk menyimpan daftar kategori yang dinamis
   const [categories, setCategories] = useState(['Semua']); 
 
   useEffect(() => {
@@ -34,15 +32,8 @@ export default function ManageProducts() {
       
       if (data) {
         setProducts(data);
-        
-        // --- LOGIKA UNTUK MENGEKSTRAK KATEGORI UNIK ---
-        // 1. Ambil semua nilai 'category' dari data produk
         const allCategories = data.map(product => product.category);
-        
-        // 2. Gunakan Set untuk membuang duplikat (misal ada 5 produk 'DAIRY', jadikan 1 saja)
         const uniqueCategories = [...new Set(allCategories)];
-        
-        // 3. Gabungkan 'Semua' dengan kategori unik yang ditemukan
         setCategories(['Semua', ...uniqueCategories]);
       }
     } catch (error) {
@@ -55,26 +46,18 @@ export default function ManageProducts() {
   const handleDelete = async (id, name) => {
     if (window.confirm(`Yakin ingin menghapus produk "${name}"?`)) {
       try {
-        const { error } = await supabase
-          .from('products')
-          .delete()
-          .eq('id', id);
-
+        const { error } = await supabase.from('products').delete().eq('id', id);
         if (error) throw error;
         
-        // Update products state
         const updatedProducts = products.filter(product => product.id !== id);
         setProducts(updatedProducts);
         
-        // (Opsional) Update kategori juga jika produk yang dihapus adalah produk terakhir di kategorinya
         const remainingCategories = [...new Set(updatedProducts.map(p => p.category))];
         setCategories(['Semua', ...remainingCategories]);
         
-        // Jika kategori aktif terhapus, kembalikan filter ke 'Semua'
         if (!remainingCategories.includes(activeCategory) && activeCategory !== 'Semua') {
           setActiveCategory('Semua');
         }
-
         alert('Produk berhasil dihapus!');
       } catch (error) {
         console.error('Error deleting product:', error.message);
@@ -90,35 +73,49 @@ export default function ManageProducts() {
   });
 
   return (
-    <div className="admin-container bg-light-gray">
-      <header className="manage-header">
-        <button className="icon-btn-blue" onClick={() => router.back()}><ArrowLeft size={20} /></button>
-        <h1 className="manage-title">Kelola Produk</h1>
+    <div className="min-h-screen bg-azure-bg pb-24 font-sans text-slate-800 max-w-[420px] mx-auto relative">
+      
+      {/* HEADER */}
+      <header className="flex justify-between items-center p-6 bg-azure-bg sticky top-0 z-50">
         <button 
-          className="icon-btn-blue" 
+          className="p-2 bg-white rounded-xl shadow-sm text-azure-primary active:scale-90 transition-transform" 
+          onClick={() => router.back()}
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-lg font-extrabold text-slate-800 tracking-tight">Kelola Produk</h1>
+        <button 
+          className="p-2 bg-azure-primary text-white rounded-xl shadow-lg shadow-blue-500/30 active:scale-90 transition-transform" 
           onClick={() => router.push('/admin/products/add')}
         >
-          <Plus size={24} />
+          <Plus size={20} />
         </button>
       </header>
 
-      <div className="search-wrapper">
-        <Search size={18} className="search-icon-inside" />
-        <input 
-          type="text" 
-          placeholder="Cari nama produk atau SKU..." 
-          className="search-input-box"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+      {/* SEARCH BAR */}
+      <div className="px-6 mb-6">
+        <div className="relative group">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-azure-primary transition-colors" />
+          <input 
+            type="text" 
+            placeholder="Cari nama produk..." 
+            className="w-full bg-white border-none py-4 pl-12 pr-4 rounded-2xl shadow-sm text-sm outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
       </div>
 
-      {/* Filter Chips - Sekarang menggunakan data dinamis (categories) */}
-      <div className="filter-scroll-container">
+      {/* DYNAMIC FILTER CHIPS */}
+      <div className="flex gap-3 overflow-x-auto px-6 mb-8 no-scrollbar">
         {categories.map((category, index) => (
           <button 
             key={index}
-            className={`filter-chip ${activeCategory === category ? 'active' : ''}`}
+            className={`px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all shadow-sm border ${
+              activeCategory === category 
+              ? 'bg-azure-primary text-white border-azure-primary scale-105' 
+              : 'bg-white text-slate-500 border-transparent hover:border-slate-200'
+            }`}
             onClick={() => setActiveCategory(category)}
           >
             {category}
@@ -126,39 +123,54 @@ export default function ManageProducts() {
         ))}
       </div>
 
-      <div className="admin-product-list">
+      {/* PRODUCT LIST */}
+      <div className="px-6 space-y-4">
         {loading ? (
-          <p style={{ textAlign: 'center', marginTop: '20px' }}>Memuat data...</p>
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+            <Loader2 size={32} className="animate-spin mb-4" />
+            <p className="text-sm font-bold">Sinkronisasi Data...</p>
+          </div>
         ) : filteredProducts.length > 0 ? (
           filteredProducts.map((product) => (
-            <div key={product.id} className="admin-product-card">
-              <div className="admin-product-img-wrapper">
-                <span className="category-badge" style={{ backgroundColor: '#c7b8ea' }}>
+            <div key={product.id} className="bg-white rounded-[28px] p-3 shadow-sm border border-slate-100 flex gap-4 hover:shadow-md transition-shadow">
+              
+              {/* Image Preview with Badge */}
+              <div className="relative w-24 h-24 shrink-0 rounded-2xl overflow-hidden bg-slate-50">
+                <span className="absolute top-1.5 left-1.5 bg-azure-tertiary/90 backdrop-blur-sm text-white text-[8px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">
                   {product.category}
                 </span>
-                <img src={product.image} alt={product.name} className="admin-product-img" />
+                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
               </div>
 
-              <div className="admin-product-info">
-                <h3 className="admin-product-name">{product.name}</h3>
-                <p className="admin-product-stock">
-                  Stok: Tersedia
-                </p>
+              {/* Info & Actions */}
+              <div className="flex flex-col justify-between flex-1 py-1 pr-1">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 line-clamp-1">{product.name}</h3>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      In Stock
+                    </p>
+                  </div>
+                </div>
                 
-                <div className="admin-product-footer">
-                  <span className="admin-product-price">{product.price}</span>
-                  <div className="admin-action-buttons">
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-[15px] font-black text-azure-primary">
+                    Rp {Number(product.price).toLocaleString('id-ID')}
+                  </span>
+                  
+                  <div className="flex gap-2">
                     <button 
-                      className="btn-action btn-delete"
+                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                       onClick={() => handleDelete(product.id, product.name)}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={16} />
                     </button>
                     <button 
-                      className="btn-action btn-edit"
-                      onClick={() => alert(`Edit fitur untuk ID: ${product.id} belum dibuat`)}
+                      className="p-2 text-slate-400 hover:text-azure-secondary hover:bg-blue-50 rounded-lg transition-colors"
+                      onClick={() => alert(`Edit fitur untuk ID: ${product.id} segera hadir`)}
                     >
-                      <Pencil size={14} />
+                      <Pencil size={16} />
                     </button>
                   </div>
                 </div>
@@ -166,12 +178,14 @@ export default function ManageProducts() {
             </div>
           ))
         ) : (
-          <p style={{ textAlign: 'center', marginTop: '20px' }}>Tidak ada produk ditemukan.</p>
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[40px] border-2 border-dashed border-slate-100">
+            <PackageOpen size={48} className="text-slate-200 mb-4" />
+            <p className="text-sm font-bold text-slate-400">Tidak ada produk ditemukan.</p>
+          </div>
         )}
       </div>
 
       <AdminBottomNav />
-      
     </div>
   );
 }

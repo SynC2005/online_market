@@ -1,221 +1,230 @@
-import React from 'react';
-import { 
-  Menu, CircleUser, Banknote, ShoppingBag, UserPlus, 
-  TrendingUp, TrendingDown, ChevronDown, ArrowRight, 
-  Package, Tag, AlertTriangle, MessageSquare, Briefcase, 
-  ChevronRight, Plus 
-} from 'lucide-react';
+"use client";
 
-// 1. IMPORT KOMPONEN BOTTOM NAV KITA
+import React, { useEffect, useState } from 'react';
+import { 
+  Menu, Banknote, ShoppingBag, User, 
+  TrendingUp, Sparkles, Droplet,
+  Users, BarChart2
+} from 'lucide-react';
 import AdminBottomNav from '@/components/AdminBottomNav';
+import { getDashboardStats } from '@/app/actions/adminActions'; 
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalCustomers: 0,
+    topProducts: [],
+    topCustomers: [],
+    lowStock: []
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadStats() {
+      const result = await getDashboardStats();
+      if (result.success) {
+        setStats(result.data);
+      }
+      setIsLoading(false);
+    }
+    loadStats();
+  }, []);
+
+  const formatRupiah = (number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(number);
+  };
+
+  const getInitials = (email) => {
+    return email.substring(0, 2).toUpperCase();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-azure-bg text-slate-500 font-sans">
+        Memuat Analytics...
+      </div>
+    );
+  }
+
   return (
-    <div className="admin-container">
-      {/* Header */}
-      <header className="admin-header">
-        <button className="icon-btn"><Menu size={24} color="#1e293b" /></button>
-        <h1 className="admin-title">Market Admin</h1>
-        <button className="icon-btn"><CircleUser size={24} color="#2563eb" /></button>
+    <div className="bg-azure-bg min-h-screen pb-24 font-sans text-slate-800 max-w-[420px] mx-auto">
+      
+      {/* HEADER */}
+      <header className="flex justify-between items-center p-6 pb-2 sticky top-0 bg-azure-bg z-50">
+        <div className="flex items-center gap-3">
+          <Menu size={24} className="text-slate-700" />
+          <h1 className="text-lg font-bold text-slate-800 tracking-tight">Market Admin</h1>
+        </div>
+        <div className="w-10 h-10 bg-teal-600 rounded-full border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
+          <User size={20} color="white" />
+        </div>
       </header>
 
-      {/* Stats Cards */}
-      <div className="stats-grid">
-        {/* Stat 1: Total Sales */}
-        <div className="stat-card">
-          <div className="stat-header">
-            <div className="stat-icon-box blue-box"><Banknote size={20} color="#2563eb" /></div>
-            <span className="trend-badge trend-up"><TrendingUp size={12} /> +12%</span>
-          </div>
-          <p className="stat-label">Total Sales</p>
-          <h3 className="stat-value">$12,450</h3>
-        </div>
+      <div className="px-6 pt-4">
+        <h2 className="text-[34px] font-extrabold text-slate-900 leading-[1.1]">Performance<br/>Overview</h2>
+        <p className="text-[13px] text-slate-500 mt-2">Azure Market real-time analytics and store management dashboard.</p>
 
-        {/* Stat 2: Active Orders */}
-        <div className="stat-card">
-          <div className="stat-header">
-            <div className="stat-icon-box blue-box"><ShoppingBag size={20} color="#2563eb" /></div>
-            <span className="trend-badge trend-down"><TrendingDown size={12} /> -5%</span>
-          </div>
-          <p className="stat-label">Active Orders</p>
-          <h3 className="stat-value">34</h3>
-        </div>
-
-        {/* Stat 3: New Customers */}
-        <div className="stat-card">
-          <div className="stat-header">
-            <div className="stat-icon-box blue-box"><UserPlus size={20} color="#2563eb" /></div>
-            <span className="trend-badge trend-up"><TrendingUp size={12} /> +18%</span>
-          </div>
-          <p className="stat-label">New Customers</p>
-          <h3 className="stat-value">150</h3>
-        </div>
-      </div>
-
-      {/* Chart Section */}
-      <div className="admin-section-card">
-        <div className="chart-header">
-          <div>
-            <h3 className="section-title">Weekly Sales Trend</h3>
-            <p className="section-subtitle">Data from June 12 - June 19, 2024</p>
-          </div>
-          <button className="dropdown-btn">
-            Last 7 Days <ChevronDown size={14} />
+        {/* Action Buttons */}
+        <div className="flex gap-3 mt-6">
+          <button className="flex-1 bg-indigo-50 text-indigo-600 py-3.5 px-4 rounded-2xl font-bold text-[13px] flex items-center justify-center gap-2 active:scale-95 transition-transform">
+            <ShoppingBag size={18} /> Kelola Produk
+          </button>
+          <button className="flex-1 bg-azure-primary text-white py-3.5 px-4 rounded-2xl font-bold text-[13px] flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-transform">
+            <BarChart2 size={18} /> Kelola Promo
           </button>
         </div>
-        
-        {/* Simple CSS Bar Chart */}
-        <div className="bar-chart">
-          <div className="bar-wrapper"><div className="bar h-30"></div><span>MON</span></div>
-          <div className="bar-wrapper"><div className="bar h-60"></div><span>TUE</span></div>
-          <div className="bar-wrapper"><div className="bar h-50"></div><span>WED</span></div>
-          <div className="bar-wrapper"><div className="bar active h-90"></div><span>THU</span></div>
-          <div className="bar-wrapper"><div className="bar h-60"></div><span>FRI</span></div>
-          <div className="bar-wrapper"><div className="bar h-80"></div><span>SAT</span></div>
-          <div className="bar-wrapper"><div className="bar h-70"></div><span>SUN</span></div>
+
+        {/* REVENUE CARD */}
+        <div className="bg-white rounded-[32px] p-6 mt-8 shadow-sm border border-slate-100 relative overflow-hidden group">
+          <div className="relative z-10">
+            <div className="flex justify-between items-start">
+              <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100">
+                <Banknote size={24} className="text-slate-600" />
+              </div>
+              <div className="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1">
+                <TrendingUp size={12} /> 12.5%
+              </div>
+            </div>
+            <p className="text-slate-500 text-[13px] mt-4 font-bold uppercase tracking-wider">Total Revenue</p>
+            <h3 className="text-4xl font-extrabold text-slate-900 mt-1 tracking-tight">
+              {formatRupiah(stats.totalRevenue).replace(',00', '')}
+            </h3>
+            
+            <div className="flex items-center gap-3 mt-6">
+              <div className="flex-1 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                <div className="bg-azure-primary w-3/4 h-full rounded-full transition-all duration-1000"></div>
+              </div>
+              <span className="text-[11px] text-slate-500 font-bold">75% of target</span>
+            </div>
+          </div>
+          <div className="absolute -right-6 -top-6 w-32 h-32 bg-blue-50 rounded-full blur-2xl opacity-60 group-hover:opacity-100 transition-opacity"></div>
         </div>
+
+        {/* TOTAL ORDERS CARD */}
+        <div className="bg-white rounded-[32px] p-6 mt-4 shadow-sm border border-slate-100 relative overflow-hidden group">
+          <div className="relative z-10">
+            <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border border-slate-100">
+              <ShoppingBag size={24} className="text-slate-600" />
+            </div>
+            <p className="text-slate-500 text-[13px] font-bold uppercase tracking-wider">Total Orders</p>
+            <h3 className="text-4xl font-extrabold text-slate-900 mt-1">{stats.totalOrders.toLocaleString('id-ID')}</h3>
+            <p className="text-[11px] font-extrabold text-azure-primary mt-2 tracking-widest uppercase">+84 FROM YESTERDAY</p>
+          </div>
+          <div className="absolute -right-6 -top-6 w-32 h-32 bg-blue-50 rounded-full blur-2xl opacity-60 group-hover:opacity-100 transition-opacity"></div>
+        </div>
+
+        {/* ACTIVE CUSTOMERS CARD */}
+        <div className="bg-azure-tertiary rounded-[32px] p-6 mt-4 shadow-xl shadow-purple-500/20 relative overflow-hidden group">
+          <div className="relative z-10 text-white">
+            <div className="flex justify-between items-start">
+              <Sparkles size={28} className="text-purple-200" />
+              <span className="bg-white/20 text-white text-[10px] px-3 py-1 rounded-lg font-extrabold tracking-widest uppercase">PREMIUM</span>
+            </div>
+            <p className="text-purple-100 text-[13px] font-bold mt-6 uppercase tracking-wider">Total Customers</p>
+            <h3 className="text-4xl font-extrabold mt-1 tracking-tight">{stats.totalCustomers}</h3>
+          </div>
+          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-110 transition-transform"></div>
+        </div>
+
+        {/* RECENT SALES BREAKDOWN */}
+        <div className="bg-white rounded-[32px] p-6 mt-6 shadow-sm border border-slate-100">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-bold text-slate-900 text-[15px]">Recent Sales Breakdown</h3>
+            <span className="text-[12px] text-azure-primary font-bold cursor-pointer hover:underline">View All</span>
+          </div>
+
+          <div className="flex flex-col gap-5">
+            {stats.topProducts.map((product, idx) => (
+              <div key={idx} className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-11 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-slate-400">
+                    <Droplet size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">{product.name}</h4>
+                    <p className="text-[11px] text-slate-500 font-medium">Produk Terlaris</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <h4 className="font-bold text-slate-900 text-sm">--</h4>
+                  <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-tighter">{product.units} units</p>
+                </div>
+              </div>
+            ))}
+            {stats.topProducts.length === 0 && <p className="text-sm text-slate-400 text-center py-4 italic">Belum ada data penjualan.</p>}
+          </div>
+        </div>
+
+        {/* TOP CUSTOMER ANALYTICS */}
+        <div className="bg-blue-50 rounded-[32px] p-6 mt-6 mb-2">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-bold text-slate-900 text-[15px]">Top Customer Analytics</h3>
+            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm text-azure-primary">
+              <Users size={14} />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {stats.topCustomers.map((customer, idx) => {
+              const colors = ['bg-blue-400', 'bg-purple-400', 'bg-indigo-400'];
+              const bgColor = colors[idx % colors.length];
+
+              return (
+                <div key={idx} className="bg-white rounded-2xl p-4 flex items-center justify-between shadow-sm border border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 ${bgColor} rounded-full flex items-center justify-center text-white font-extrabold text-sm shadow-sm`}>
+                      {getInitials(customer.user_email)}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm truncate w-24 sm:w-32">{customer.user_email.split('@')[0]}</h4>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Loyal Customer</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4 text-center">
+                    <div>
+                      <p className="text-[9px] text-slate-400 font-extrabold tracking-widest uppercase">Orders</p>
+                      <p className="font-extrabold text-slate-900 text-[13px]">{customer.order_count}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] text-slate-400 font-extrabold tracking-widest uppercase">Spent</p>
+                      <p className="font-extrabold text-slate-900 text-[13px]">{formatRupiah(customer.total_spent).replace('Rp', '').split(',')[0]}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {stats.topCustomers.length === 0 && <p className="text-sm text-slate-400 text-center bg-white p-4 rounded-2xl italic">Belum ada pelanggan.</p>}
+          </div>
+        </div>
+
+        {/* STOCK INVENTORY ALERTS */}
+        <div className="mt-8 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-extrabold text-slate-900 leading-tight">Stock Inventory<br/>Alerts</h3>
+            <span className="bg-red-50 text-red-600 text-[11px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
+              {stats.lowStock.length} items low
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            {stats.lowStock.map((item, idx) => (
+              <div key={idx} className={`bg-white p-4 rounded-2xl shadow-sm border-l-4 transition-all hover:scale-[1.02] ${item.quantity < 5 ? 'border-red-500' : 'border-azure-primary'}`}>
+                <p className="text-[11px] text-slate-400 font-bold uppercase truncate mb-1">{item.name}</p>
+                <h4 className="font-extrabold text-slate-900 text-lg">{item.quantity} <span className="text-[10px] text-slate-400">units</span></h4>
+              </div>
+            ))}
+            {stats.lowStock.length === 0 && <p className="col-span-2 text-sm text-slate-500 text-center py-6 bg-white rounded-3xl border border-dashed border-slate-200">Semua stok aman terjaga ✅</p>}
+          </div>
+        </div>
+
       </div>
 
-      {/* Recent Orders */}
-      <div className="admin-section-transparent">
-        <div className="section-header-flex">
-          <h3 className="section-title">Recent Orders</h3>
-          <a href="#" className="view-all-link">View All</a>
-        </div>
-        
-        <div className="recent-orders-list">
-          {/* Order 1 */}
-          <div className="recent-order-card">
-            <div className="order-icon-box"><ShoppingBag size={18} color="#2563eb" /></div>
-            <div className="order-details">
-              <h4>Order #AZ-8812</h4>
-              <p>Today, 2:45 PM</p>
-            </div>
-            <div className="order-price-items">
-              <h4>$124.50</h4>
-              <p>3 Items</p>
-            </div>
-            <span className="status-badge bg-green">COMPLETED</span>
-          </div>
-
-          {/* Order 2 */}
-          <div className="recent-order-card">
-            <div className="order-icon-box"><ShoppingBag size={18} color="#2563eb" /></div>
-            <div className="order-details">
-              <h4>Order #AZ-8811</h4>
-              <p>Today, 1:20 PM</p>
-            </div>
-            <div className="order-price-items">
-              <h4>$56.00</h4>
-              <p>1 Item</p>
-            </div>
-            <span className="status-badge bg-blue">PROCESSED</span>
-          </div>
-
-          {/* Order 3 */}
-          <div className="recent-order-card">
-            <div className="order-icon-box"><ShoppingBag size={18} color="#2563eb" /></div>
-            <div className="order-details">
-              <h4>Order #AZ-8810</h4>
-              <p>Yesterday, 9:15 PM</p>
-            </div>
-            <div className="order-price-items">
-              <h4>$210.00</h4>
-              <p>5 Items</p>
-            </div>
-            <span className="status-badge bg-yellow">PENDING</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Action Banners */}
-      <div className="action-banners">
-        <div className="action-banner">
-          <div className="action-icon"><Package size={24} color="#2563eb" /></div>
-          <div className="action-text">
-            <h3>Kelola Produk</h3>
-            <p>Manage inventory & pricing</p>
-          </div>
-          <ArrowRight size={20} color="white" />
-        </div>
-
-        <div className="action-banner">
-          <div className="action-icon"><Tag size={24} color="#2563eb" /></div>
-          <div className="action-text">
-            <h3>Kelola Promo</h3>
-            <p>Create & manage active deals</p>
-          </div>
-          <ArrowRight size={20} color="white" />
-        </div>
-      </div>
-
-      {/* Low Stock Alert */}
-      <div className="highlight-section blue-bg">
-        <div className="highlight-header text-red">
-          <AlertTriangle size={20} color="#dc2626" />
-          <h3>Low Stock Alert</h3>
-        </div>
-
-        <div className="stock-card">
-          <div className="stock-info">
-            <span className="stock-name">Organic Milk (2L)</span>
-            <span className="stock-left text-red">5 left</span>
-          </div>
-          <div className="progress-bg"><div className="progress-fill bg-red w-15"></div></div>
-          <button className="btn-light-blue">Restock Now</button>
-        </div>
-
-        <div className="stock-card">
-          <div className="stock-info">
-            <span className="stock-name">Artisan Sourdough</span>
-            <span className="stock-left text-red">2 left</span>
-          </div>
-          <div className="progress-bg"><div className="progress-fill bg-red w-5"></div></div>
-          <button className="btn-light-blue">Restock Now</button>
-        </div>
-
-        <div className="stock-card">
-          <div className="stock-info">
-            <span className="stock-name">Avocados (Bulk)</span>
-            <span className="stock-left text-orange">12 left</span>
-          </div>
-          <div className="progress-bg"><div className="progress-fill bg-orange w-30"></div></div>
-          <button className="btn-light-blue">Restock Now</button>
-        </div>
-      </div>
-
-      {/* Staff Management */}
-      <div className="highlight-section gray-bg">
-        <div className="highlight-header">
-          <h3 className="text-dark">Staff Management</h3>
-        </div>
-
-        <div className="staff-card">
-          <div className="staff-icon bg-light-blue"><MessageSquare size={18} color="#2563eb" /></div>
-          <div className="staff-info">
-            <h4>Messenger</h4>
-            <p>3 unread from support</p>
-          </div>
-          <ChevronRight size={18} color="#94a3b8" />
-        </div>
-
-        <div className="staff-card">
-          <div className="staff-icon bg-light-purple"><Briefcase size={18} color="#7c3aed" /></div>
-          <div className="staff-info">
-            <h4>Roster Management</h4>
-            <p>12 staff members active</p>
-          </div>
-          <ChevronRight size={18} color="#94a3b8" />
-        </div>
-
-        <button className="btn-solid-blue">
-          <Plus size={18} /> Assign New Task
-        </button>
-      </div>
-
-      {/* 2. PANGGIL ADMIN BOTTOM NAV DI SINI */}
       <AdminBottomNav />
-
     </div>
   );
 }

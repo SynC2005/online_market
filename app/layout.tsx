@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+// 1. IMPORT SPEED INSIGHTS DI SINI
+import { SpeedInsights } from "@vercel/speed-insights/next"; 
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,6 +32,10 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {children}
+        
+        {/* 2. LETAKKAN KOMPONENNYA DI BAWAH CHILDREN */}
+        <SpeedInsights />
+        
       </body>
     </html>
   );
