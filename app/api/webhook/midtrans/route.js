@@ -17,7 +17,7 @@ export async function POST(request) {
       // Gunakan supabaseAdmin, bukan supabase biasa
       const { error } = await supabaseAdmin
         .from('orders')
-        .update({ status: 'Lunas' }) 
+        .update({ status: 'COMPLETED' }) 
         .eq('order_id', order_id);
 
       if (error) {
@@ -28,7 +28,7 @@ export async function POST(request) {
     else if (transaction_status === 'cancel' || transaction_status === 'deny' || transaction_status === 'expire') {
       await supabaseAdmin
         .from('orders')
-        .update({ status: 'Dibatalkan' })
+        .update({ status: 'CANCELLED' })
         .eq('order_id', order_id);
     }
 

@@ -2,6 +2,7 @@
 
 import { supabase } from "@/utils/supabase";
 import midtransClient from "midtrans-client"; 
+import { revalidatePath } from "next/cache"; // <-- IMPORT INI WAJIB DITAMBAHKAN
 
 export async function processCheckoutBackend(userEmail, cartItems) {
   try {
@@ -41,7 +42,6 @@ export async function processCheckoutBackend(userEmail, cartItems) {
     // ==========================================
     // 2. LOGIKA BARU: Simpan Detail ke 'order_items'
     // ==========================================
-    // Kita siapkan array berisi semua barang dari keranjang belanja
     const orderItemsData = cartItems.map((item) => {
       const price = typeof item.price === "string" 
         ? parseFloat(item.price.replace(/[^0-9.-]+/g, "")) 
@@ -107,29 +107,22 @@ export async function processCheckoutBackend(userEmail, cartItems) {
 // ==========================================
 
 // Mengambil Data Pesanan Aktif untuk Admin
+// Mengambil Data Pesanan Aktif untuk Admin
 export async function getActiveOrders() {
   try {
     const { data, error } = await supabase
       .from('orders')
       .select(`
-        order_id,
-        total_amount,
-        status,
-        shipping_address,
-        created_at,
-        user_email,
-        order_items (
-          quantity,
-          product_name,
-          price_at_purchase
-        )
+        order_id, created_at, user_email, shipping_address, status, total_amount,
+        order_items ( product_name, quantity, price_at_purchase )
       `)
-      .eq('status', 'Lunas') // HANYA ambil pesanan yang statusnya "Lunas" (dari Webhook) 
-      .order('created_at', { ascending: false });
+      // ✅ UBAH DI SINI: Filter kata 'Lunas'
+      .neq('status', 'Lunas') 
+      .neq('status', 'Cancelled')
+      .order('created_at', { ascending: true }); 
 
     if (error) throw error;
-    
-    return { success: true, data: data };
+    return { success: true, data };
   } catch (error) {
     console.error("Gagal mengambil orders:", error.message);
     return { success: false, message: error.message };
@@ -141,14 +134,18 @@ export async function completeOrder(orderId) {
   try {
     const { error } = await supabase
       .from('orders')
-      .update({ status: 'Completed' })
+      // ✅ UBAH DI SINI: Update menjadi 'Lunas'
+      .update({ status: 'Lunas' }) 
       .eq('order_id', orderId);
 
     if (error) throw error;
 
+    revalidatePath('/admin/orders'); 
+    revalidatePath('/admin'); 
+
     return { success: true };
   } catch (error) {
-    console.error("Gagal update order:", error.message);
+    console.error("Gagal menyelesaikan order:", error.message);
     return { success: false, message: error.message };
   }
 }

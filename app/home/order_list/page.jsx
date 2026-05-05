@@ -14,67 +14,6 @@ import { getUserSession } from "@/app/actions/authActions";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/utils/supabase";
 
-// Sample order data (fallback)
-const sampleOrdersData = [
-  {
-    id: "#ORD-8921",
-    date: "Oct 24, 2023 • 14:30 PM",
-    status: "IN_DELIVERY",
-    items: [
-      { emoji: "🥑", color: "#e5f3cc", name: "Hass Avocado" },
-      { emoji: "🥛", color: "#e0f2fe", name: "Whole Milk" },
-    ],
-    itemsTotal: 4,
-    totalAmount: "$32.40",
-    action: "Track Order",
-  },
-  {
-    id: "#ORD-8814",
-    date: "Oct 21, 2023 • 09:15 AM",
-    status: "COMPLETED",
-    items: [
-      { emoji: "🍌", color: "#fef08a", name: "Organic Bananas" },
-      { emoji: "🍞", color: "#ffedd5", name: "Grocery Bundle" },
-    ],
-    itemsTotal: 2,
-    totalAmount: "$18.90",
-    action: "Reorder",
-  },
-  {
-    id: "#ORD-8810",
-    date: "Oct 19, 2023 • 15:45 PM",
-    status: "COMPLETED",
-    items: [
-      { emoji: "🧜", color: "#fce7f3", name: "Hand Soap" },
-      { emoji: "🧽", color: "#dbeafe", name: "Sponges" },
-    ],
-    itemsTotal: 5,
-    totalAmount: "$15.60",
-    action: "Reorder",
-  },
-  {
-    id: "#ORD-8702",
-    date: "Oct 18, 2023 • 18:45 PM",
-    status: "CANCELLED",
-    items: [{ emoji: "🍫", color: "#e5e7eb", name: "Dark Artisan Chocolates" }],
-    itemsTotal: 1,
-    totalAmount: "$12.00",
-    action: "View Details",
-  },
-  {
-    id: "#ORD-8601",
-    date: "Oct 15, 2023 • 11:20 AM",
-    status: "COMPLETED",
-    items: [
-      { emoji: "🥬", color: "#d1fae5", name: "Fresh Spinach" },
-      { emoji: "🍅", color: "#fee2e2", name: "Tomatoes" },
-    ],
-    itemsTotal: 3,
-    totalAmount: "$24.50",
-    action: "Reorder",
-  },
-];
-
 export default function OrderList() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -177,7 +116,7 @@ const fetchOrders = async (userEmail) => {
     (order) => order.status === "IN_DELIVERY",
   );
   const historyOrders = orders.filter((order) =>
-    ["COMPLETED", "CANCELLED"].includes(order.status),
+    ["Lunas", "Cancelled"].includes(order.status),
   );
   const displayOrders = activeTab === "ongoing" ? ongoingOrders : historyOrders;
 

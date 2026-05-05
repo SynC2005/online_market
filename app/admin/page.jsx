@@ -21,14 +21,26 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function loadStats() {
+    // Pisahkan fungsi fetch agar bisa dipanggil berulang
+    async function fetchLatestStats() {
       const result = await getDashboardStats();
       if (result.success) {
         setStats(result.data);
       }
-      setIsLoading(false);
+      // Matikan layar loading HANYA saat data pertama kali berhasil ditarik
+      setIsLoading(false); 
     }
-    loadStats();
+
+    // 1. Tarikan data pertama kali saat halaman baru dibuka
+    fetchLatestStats();
+
+    // 2. BACKGROUND POLLING: Tarik data secara diam-diam setiap 5 detik
+    const intervalId = setInterval(() => {
+      fetchLatestStats();
+    }, 5000); // 5000 milidetik = 5 detik (Silakan ubah jika ingin lebih cepat/lambat)
+
+    // 3. CLEANUP: Matikan timer jika admin pindah ke halaman lain agar memori tidak bocor
+    return () => clearInterval(intervalId);
   }, []);
 
   const formatRupiah = (number) => {
