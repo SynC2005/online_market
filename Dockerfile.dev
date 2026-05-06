@@ -1,0 +1,21 @@
+# Menggunakan versi Node.js yang ringan (Alpine)
+FROM node:20-alpine
+
+# Menentukan direktori kerja di dalam sistem Docker
+WORKDIR /app
+
+# Menyalin file konfigurasi paket terlebih dahulu (untuk efisiensi cache)
+COPY package.json package-lock.json* ./
+
+# Menginstal semua dependencies
+# Gunakan --legacy-peer-deps jika masih ada konflik versi seperti sebelumnya
+RUN npm install --legacy-peer-deps
+
+# Menyalin seluruh kode proyek ke dalam direktori kerja
+COPY . .
+
+# Membuka port 3000 agar bisa diakses dari browser komputer Anda
+EXPOSE 3000
+
+# Perintah yang dijalankan saat mesin dinyalakan
+CMD ["npm", "run", "dev"]

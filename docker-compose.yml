@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  web:
+    container_name: azure_market_web
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Sinkronisasi kode: Apapun yang Anda ketik di VS Code akan langsung mengubah kode di dalam Docker (Hot-Reload)
+      - .:/app
+      # Melindungi node_modules dan .next di dalam Docker agar tidak tertimpa oleh file lokal
+      - /app/node_modules
+      - /app/.next
+    env_file:
+      - .env.local  # Pastikan Anda punya file ini untuk menyimpan Kunci Midtrans & Supabase
+    environment:
+      - NODE_ENV=development
