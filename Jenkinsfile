@@ -11,11 +11,10 @@ pipeline {
                 sh 'npm install'
             }
         }
-
-    }
-    stage('Test') {
+        stage('Test') { 
             steps {
-                sh './jenkins/scripts/test.sh'
+                sh 'chmod +x ./jenkins/scripts/test.sh && ./jenkins/scripts/test.sh' 
             }
         }
+    }
 }
