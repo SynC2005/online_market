@@ -105,7 +105,7 @@ export default function AdminOrders() {
           {/* Card 2 */}
           <div className="bg-white p-5 rounded-[24px] shadow-sm border border-slate-100 flex justify-between items-center group hover:border-azure-tertiary transition-all">
             <div>
-              <p className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Today's Revenue</p>
+              <p className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Today&apos;s Revenue</p>
               <h2 className="text-2xl font-extrabold text-slate-900 mt-0.5">
                 {formatRupiah(todayRevenue).replace(',00', '')}
               </h2>

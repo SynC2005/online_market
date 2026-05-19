@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   Menu, ShoppingCart, Search, User, MapPin, LogOut, X, Plus, Minus 
 } from "lucide-react";
@@ -30,7 +30,6 @@ export default function FluidMarket() {
   const [userSession, setUserSession] = useState(null);
   const [profileName, setProfileName] = useState("");
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -42,6 +41,13 @@ export default function FluidMarket() {
   const [formData, setFormData] = useState({ phone: "", address: "", location_link: "" });
 
   useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true);
+      const { data } = await supabase.from("products").select("*");
+      if (data) setProducts(data);
+      setLoading(false);
+    }
+
     async function initSession() {
       const payload = await getUserSession();
       if (!payload) {
@@ -56,7 +62,7 @@ export default function FluidMarket() {
     fetchProducts();
   }, [router]);
 
-  useEffect(() => {
+  const filteredProducts = useMemo(() => {
     let filtered = products;
     if (searchQuery.trim()) {
       filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -64,15 +70,8 @@ export default function FluidMarket() {
     if (selectedCategory !== "all") {
       filtered = filtered.filter(p => p.category?.toLowerCase() === selectedCategory.toLowerCase());
     }
-    setFilteredProducts(filtered);
+    return filtered;
   }, [products, searchQuery, selectedCategory]);
-
-  const fetchProducts = async () => {
-    setLoading(true);
-    const { data } = await supabase.from("products").select("*");
-    if (data) setProducts(data);
-    setLoading(false);
-  };
 
   const handleLogout = async () => {
     await logoutUser();
