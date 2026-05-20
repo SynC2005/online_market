@@ -1,0 +1,94 @@
+# ==============================================================
+# DAST Pipeline: OWASP ZAP Baseline Scan
+# ==============================================================
+# Berjalan SETELAH CI Pipeline sukses di branch main/master.
+# Menjalankan app di container, lalu scan dengan OWASP ZAP
+# untuk menemukan vulnerability dari perspektif attacker.
+# ==============================================================
+name: DAST Scan (ZAP)
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types: [completed]
+    branches: [main, master]
+
+# Hanya 1 DAST scan berjalan per waktu
+concurrency:
+  group: dast-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/minimart-online
+
+jobs:
+  dast-scan:
+    name: 🕷️ OWASP ZAP Baseline Scan
+    runs-on: ubuntu-latest
+    # Hanya jalan jika CI Pipeline SUKSES (bukan gagal/cancelled)
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    permissions:
+      contents: read
+      packages: read       # Untuk pull image dari GHCR
+      issues: write         # ZAP otomatis buat/update issue dengan hasil scan
+      security-events: write # Untuk upload SARIF ke Security tab
+
+    steps:
+      # ── Setup ──────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lowercase image name
+        run: echo "IMAGE_NAME_LC=${IMAGE_NAME,,}" >> $GITHUB_ENV
+        # Docker/OCI registry tidak menerima huruf kapital
+
+      - name: Login ke GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Jalankan Aplikasi ──────────────────────
+      - name: Pull & Run container
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}:latest
+          docker run -d \
+            --name minimart-app \
+            -p 3000:3000 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LC }}:latest
+
+      - name: Wait for app to be ready
+        run: |
+          echo "Menunggu aplikasi siap..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000 > /dev/null 2>&1; then
+              echo "✅ Aplikasi siap setelah ${i}x2 detik"
+              exit 0
+            fi
+            echo "  Percobaan $i/30 — belum siap, tunggu 2 detik..."
+            sleep 2
+          done
+          echo "❌ Aplikasi tidak siap setelah 60 detik"
+          echo "=== Docker Logs ==="
+          docker logs minimart-app
+          exit 1
+
+      # ── DAST Scan ──────────────────────────────
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.15.0
+        with:
+          target: 'http://localhost:3000'
+          allow_issue_writing: true
+          fail_action: false
+          # fail_action: false → Tidak gagalkan workflow jika ada finding
+          # Supaya hasil tetap ter-upload ke Security tab
+
+      # ── Cleanup ────────────────────────────────
+      - name: Stop container
+        if: always()
+        run: |
+          docker stop minimart-app || true
+          docker rm minimart-app || true
