@@ -1,6 +1,6 @@
 services:
   web:
-    image: ghcr.io/<GITHUB_USERNAME>/minimart-online:latest  # TODO: Ganti <GITHUB_USERNAME> dengan username GitHub kamu (huruf kecil)
+    image: ghcr.io/sync2005/minimart-online:latest # TODO: Ganti <GITHUB_USERNAME> dengan username GitHub kamu (huruf kecil)
     container_name: minimart_web
     restart: unless-stopped
     ports:
@@ -8,7 +8,7 @@ services:
     env_file:
       - .env.production
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000" ]
       interval: 30s
       timeout: 10s
       retries: 3
