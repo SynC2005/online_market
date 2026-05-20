@@ -10,9 +10,9 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
   pull_request:
-    branches: [main]
+    branches: [main, master]
   schedule:
     - cron: '17 4 * * *'
     # Scan harian setiap jam 04:17 UTC (11:17 WIB)

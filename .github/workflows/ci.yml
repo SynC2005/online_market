@@ -8,9 +8,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 # Membatalkan run sebelumnya jika ada push baru di branch yang sama
 concurrency:
