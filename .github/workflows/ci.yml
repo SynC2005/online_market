@@ -115,12 +115,12 @@ jobs:
 
     steps:
       - name: Run Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
+  uses: aquasecurity/trivy-action@v0.36.0
+  with:
+    image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.image-tag }}
+    format: 'sarif'
+    output: 'trivy-results.sarif'
+    severity: 'CRITICAL,HIGH'
           # Hanya scan vulnerability CRITICAL dan HIGH
 
       - name: Upload Trivy results to GitHub Security
