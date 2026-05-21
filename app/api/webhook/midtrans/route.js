@@ -1,14 +1,36 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Membuat client Supabase KHUSUS ADMIN (Bypass RLS)
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY // Gunakan Service Role Key!
-);
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const missingEnv = [];
+
+  if (!supabaseUrl) missingEnv.push('NEXT_PUBLIC_SUPABASE_URL');
+  if (!serviceRoleKey) missingEnv.push('SUPABASE_SERVICE_ROLE_KEY');
+
+  if (missingEnv.length > 0) {
+    return {
+      client: null,
+      error: `Missing webhook environment variables: ${missingEnv.join(', ')}`,
+    };
+  }
+
+  return {
+    client: createClient(supabaseUrl, serviceRoleKey),
+    error: null,
+  };
+}
 
 export async function POST(request) {
   try {
+    const { client: supabaseAdmin, error: configError } = getSupabaseAdmin();
+
+    if (configError) {
+      console.error(configError);
+      return NextResponse.json({ message: "Konfigurasi server tidak lengkap" }, { status: 500 });
+    }
+
     const body = await request.json();
     const { order_id, transaction_status } = body;
 

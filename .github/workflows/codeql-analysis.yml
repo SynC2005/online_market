@@ -1,0 +1,59 @@
+# ==============================================================
+# CodeQL SAST — Bawaan GitHub
+# ==============================================================
+# Menganalisis source code untuk mencari vulnerability:
+# - SQL Injection, XSS, Path traversal
+# - Hardcoded credentials, Insecure randomness
+# - Prototype pollution, SSRF
+# ==============================================================
+name: "CodeQL"
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    - cron: '17 4 * * *'
+    # Scan harian setiap jam 04:17 UTC (11:17 WIB)
+    # Untuk mendeteksi vulnerability baru di kode yang tidak berubah
+
+jobs:
+  analyze:
+    name: 🛡️ CodeQL SAST Analysis
+    runs-on: ubuntu-latest
+
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript-typescript']
+        # CodeQL otomatis mendeteksi JavaScript, TypeScript, JSX, TSX
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended
+          # ─── Query suites yang tersedia ───
+          # security-extended  → OWASP Top 10 + tambahan (REKOMENDASI)
+          # security-and-quality → Security + code quality issues
+          # default → Hanya rules yang paling presisi
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+        # CodeQL otomatis mendeteksi build system (Next.js/npm)
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
