@@ -50,9 +50,7 @@ export async function POST(request) {
       return NextResponse.json({ message: "Konfigurasi Midtrans tidak lengkap" }, { status: 500 });
     }
 
-    // =================================================================
     // 4. MITIGASI S-04: Hitung Hash SHA512 untuk Validasi Keaslian
-    // =================================================================
     const hashInput = order_id + status_code + gross_amount + serverKey;
     const hashSignature = crypto
       .createHash('sha512')
