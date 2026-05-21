@@ -24,7 +24,10 @@ const CATEGORIES = [
   { id: "frozen", label: "Frozen", icon: "🍦" },
 ];
 
+console.log("FluidMarket component is initializing...");
+
 export default function FluidMarket() {
+  console.log("FluidMarket function is running...");
   const router = useRouter();
   
   const [userSession, setUserSession] = useState(null);
@@ -41,26 +44,48 @@ export default function FluidMarket() {
   const [formData, setFormData] = useState({ phone: "", address: "", location_link: "" });
 
   useEffect(() => {
+  // Pindahkan logika ke luar agar bisa dipanggil secara independen
+  async function initAll() {
+    // 1. Jalankan fetchProducts terlebih dahulu agar produk muncul secepat mungkin
+    // Tidak perlu menunggu sesi untuk menampilkan daftar produk
     async function fetchProducts() {
       setLoading(true);
-      const { data } = await supabase.from("products").select("*");
+      const { data, error } = await supabase.from("products").select("*");
+      if (error) console.error("Error fetching products:", error);
       if (data) setProducts(data);
       setLoading(false);
     }
 
+    // 2. Jalankan initSession secara terpisah
     async function initSession() {
+      console.log("Mencoba mengambil sesi...");
       const payload = await getUserSession();
+      
       if (!payload) {
+        console.warn("Sesi tidak ditemukan atau token kedaluwarsa.");
         router.push("/login");
         return;
       }
+      
+      console.log("Sesi berhasil dimuat:", payload);
       setUserSession(payload);
-      const { data } = await supabase.from("profiles").select("full_name").eq("email", payload.email).single();
+      
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("email", payload.email)
+        .single();
+        
+      if (error) console.error("Error ambil profil:", error);
       if (data) setProfileName(data.full_name);
     }
-    initSession();
-    fetchProducts();
-  }, [router]);
+
+    // Jalankan keduanya secara bersamaan (parallel)
+    await Promise.all([fetchProducts(), initSession()]);
+  }
+
+  initAll();
+}, [router]);
 
   const filteredProducts = useMemo(() => {
     let filtered = products;
@@ -94,12 +119,32 @@ export default function FluidMarket() {
   const cartTotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
 
   const handleCheckoutClick = async () => {
-    setIsLoadingCheckout(true);
-    const { data: profile } = await supabase.from("profiles").select("*").eq("email", userSession.email).single();
-    if (!profile || !profile.address || !profile.phone) setShowProfileForm(true);
-    else processOrder(profile);
+  // Pengecekan keamanan: jika userSession belum ada, hentikan fungsi
+  if (!userSession?.email) {
+    console.error("Sesi pengguna belum dimuat!");
+    alert("Mohon tunggu sebentar, sesi sedang dimuat...");
+    return;
+  }
+
+  setIsLoadingCheckout(true);
+  try {
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("email", userSession.email)
+      .single();
+
+    if (error || !profile || !profile.address || !profile.phone) {
+      setShowProfileForm(true);
+    } else {
+      processOrder(profile);
+    }
+  } catch (err) {
+    console.error("Checkout error:", err);
+  } finally {
     setIsLoadingCheckout(false);
-  };
+  }
+};
 
   const saveProfileAndCheckout = async (e) => {
     e.preventDefault();
