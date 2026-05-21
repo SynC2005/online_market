@@ -4,9 +4,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { supabase, supabaseAdmin } from "@/utils/supabase";
 
-// ==========================================
-// 1. FUNGSI LOGIN
-// ==========================================
+
 export async function loginUser(email, password) {
   try {
     // Pengecekan Keamanan Kunci Server
@@ -19,7 +17,7 @@ export async function loginUser(email, password) {
       return { success: false, message: "Kesalahan Server: Kunci Admin hilang." };
     }
 
-    // Langkah 1: Verifikasi email & password ke Supabase Auth (Pintu Depan)
+    // Verifikasi email & password ke Supabase Auth (Pintu Depan)
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
@@ -32,7 +30,7 @@ export async function loginUser(email, password) {
 
     const user = authData.user;
 
-    // Langkah 2: Ambil Role dari tabel profiles (Jalur Belakang / Bypass RLS)
+    // Ambil Role dari tabel profiles (Jalur Belakang / Bypass RLS)
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('role')
@@ -44,7 +42,7 @@ export async function loginUser(email, password) {
       return { success: false, message: "Gagal memuat profil pengguna." };
     }
 
-    // Langkah 3: Cetak JWT (Kartu Identitas)
+    // Cetak JWT (Kartu Identitas)
     const secretKey = new TextEncoder().encode(process.env.JWT_SECRET_KEY);
     const token = await new SignJWT({ 
         userId: user.id, 
@@ -56,7 +54,7 @@ export async function loginUser(email, password) {
       .setExpirationTime("24h") // Token berlaku 24 jam
       .sign(secretKey);
 
-    // Langkah 4: Simpan JWT ke Cookies Browser dengan aman (VERSI NEXT.JS 15)
+    // Simpan JWT ke Cookies Browser dengan aman (VERSI NEXT.JS 15)
     const cookieStore = await cookies(); // <-- Tambahkan 'await' di sini
     
     cookieStore.set("fluid_market_token", token, {
@@ -75,9 +73,7 @@ export async function loginUser(email, password) {
   }
 }
 
-// ==========================================
-// 2. FUNGSI REGISTER
-// ==========================================
+
 export async function registerUser(formData) {
   try {
     // Pengecekan Keamanan Kunci Server
@@ -91,7 +87,7 @@ export async function registerUser(formData) {
     const password = formData.get('password');
     const fullName = formData.get('fullName');
 
-    // Langkah 1: Buat akun di brankas rahasia Supabase Auth (Pintu Depan)
+    // Buat akun di brankas rahasia Supabase Auth (Pintu Depan)
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -104,7 +100,7 @@ export async function registerUser(formData) {
 
     const userId = authData.user?.id;
 
-    // Langkah 2: Buat baris profil di tabel 'profiles' (Jalur Belakang / Bypass RLS)
+    // Buat baris profil di tabel 'profiles' (Jalur Belakang / Bypass RLS)
     if (userId) {
       const { error: profileError } = await supabaseAdmin
         .from('profiles')
@@ -132,9 +128,7 @@ export async function registerUser(formData) {
   }
 }
 
-// ==========================================
-// 3. FUNGSI LOGOUT
-// ==========================================
+
 export async function logoutUser() {
   try {
     // 1. Hapus JWT dari Cookies (VERSI NEXT.JS 15)
@@ -151,9 +145,7 @@ export async function logoutUser() {
   }
 }
 
-// ==========================================
-// 4. FUNGSI AMBIL SESI (PENGGANTI useSession)
-// ==========================================
+
 export async function getUserSession() {
   try {
     console.log("=== DIAGNOSA getUserSession ===");

@@ -4,9 +4,7 @@ import { supabase } from "@/utils/supabase";
 
 export async function getDashboardStats() {
   try {
-    // ====================================================================
     // MITIGASI E-03 & I-03: VALIDASI OTORISASI SERVER ACTION
-    // ====================================================================
     
     // 1. Cek Sesi User (Apakah ada yang login?)
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -63,7 +61,6 @@ export async function getDashboardStats() {
       .select('*')
       .order('total_spent', { ascending: false })
       .limit(3);
-    // TAMPILKAN ERROR JIKA ADA
     if (custError) console.error("Error Customers:", custError.message);
 
     // 3. Tarik Total Pelanggan

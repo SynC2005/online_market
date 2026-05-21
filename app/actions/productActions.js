@@ -4,8 +4,7 @@ import { supabase } from "@/utils/supabase";
 
 export async function addProductBackend(productData) {
   try {
-    // KEAMANAN TAMBAHAN: Bersihkan input harga dari apapun selain angka
-    // Jaga-jaga jika ada user yang mengetik "Rp 15.000" di form, kita ubah jadi 15000 murni
+
     const cleanPrice = parseInt(productData.price.toString().replace(/[^0-9]/g, ''), 10);
 
     // 1. Siapkan data yang akan dimasukkan

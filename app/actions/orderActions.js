@@ -57,7 +57,7 @@ export async function processCheckoutBackend(userEmail, cartItems) {
         };
       }
 
-      // Menggunakan HARGA ASLI DATABASE (Abaikan harga kiriman client)
+      // Menggunakan HARGA ASLI DATABASE
       const subtotal = realProduct.price * item.quantity;
       totalAmount += subtotal;
 
@@ -129,7 +129,6 @@ export async function processCheckoutBackend(userEmail, cartItems) {
 }
 
 /**
- * ─── FUNGSI KHUSUS HALAMAN ADMIN ───
  * Mitigasi E-02 & E-03: Validasi Sesi dan Peran (Role) secara Server-Side
  */
 async function verifyAdminOtorisasi() {
