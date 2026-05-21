@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto'; // <-- 1. Tambahkan library crypto bawaan Node.js
 
 function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -32,7 +33,43 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { order_id, transaction_status } = body;
+    
+    // 2. Ekstrak data tambahan yang dibutuhkan untuk keamanan (status_code, gross_amount, signature_key)
+    const { 
+      order_id, 
+      transaction_status,
+      status_code,
+      gross_amount,
+      signature_key 
+    } = body;
+
+    // 3. Ambil Server Key Midtrans dari file .env
+    const serverKey = process.env.MIDTRANS_SERVER_KEY;
+    if (!serverKey) {
+      console.error("Missing MIDTRANS_SERVER_KEY environment variable");
+      return NextResponse.json({ message: "Konfigurasi Midtrans tidak lengkap" }, { status: 500 });
+    }
+
+    // =================================================================
+    // 4. MITIGASI S-04: Hitung Hash SHA512 untuk Validasi Keaslian
+    // =================================================================
+    const hashInput = order_id + status_code + gross_amount + serverKey;
+    const hashSignature = crypto
+      .createHash('sha512')
+      .update(hashInput)
+      .digest('hex');
+
+    // 5. Bandingkan Signature dari Midtrans dengan Hash buatan kita
+    if (hashSignature !== signature_key) {
+      console.error(`[SECURITY ALERT] Webhook Spoofing terdeteksi untuk Order ID: ${order_id}`);
+      return NextResponse.json(
+        { message: 'Akses Ditolak: Signature tidak valid!' }, 
+        { status: 403 }
+      );
+    }
+    // =================================================================
+    // Jika kode sampai di sini, webhook DIJAMIN 100% ASLI dari Midtrans
+    // =================================================================
 
     if (transaction_status === 'settlement' || transaction_status === 'capture') {
       

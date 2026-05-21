@@ -4,6 +4,36 @@ import { supabase } from "@/utils/supabase";
 
 export async function getDashboardStats() {
   try {
+    // ====================================================================
+    // MITIGASI E-03 & I-03: VALIDASI OTORISASI SERVER ACTION
+    // ====================================================================
+    
+    // 1. Cek Sesi User (Apakah ada yang login?)
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { 
+        success: false, 
+        message: "Unauthorized: Silakan login terlebih dahulu." 
+      };
+    }
+
+    // 2. Cek Role ASLI dari database (Jangan percaya data dari client)
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    // 3. Blokir mutlak jika bukan admin
+    if (profileError || !profile || profile.role !== "admin") {
+      console.error(`[SECURITY ALERT] Upaya akses ilegal ke data finansial oleh User ID: ${user.id}`);
+      return { 
+        success: false, 
+        message: "Forbidden: Anda tidak memiliki hak akses Admin." 
+      };
+    }
+    // ====================================================================
+
     // 1. Tarik Data Laporan Keuangan
     const { data: reports, error: reportError } = await supabase.from('financial_reports').select('*');
     if (reportError) console.error("Error Laporan:", reportError.message);
