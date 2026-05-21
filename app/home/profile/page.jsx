@@ -14,70 +14,52 @@ import {
 import { supabase } from "@/utils/supabase";
 import BottomNav from "@/components/BottomNav";
 
-// Sample order data (fallback jika database kosong)
-const sampleOrdersData = [
-  {
-    id: "#ORD-8921",
-    date: "Oct 24, 2023 • 14:30 PM",
-    status: "IN_DELIVERY",
-    items: [
-      { emoji: "🥑", color: "#e5f3cc", name: "Hass Avocado" },
-      { emoji: "🥛", color: "#e0f2fe", name: "Whole Milk" },
-    ],
-    itemsTotal: 4,
-    totalAmount: "Rp 32.400",
-    action: "Track Order",
-  },
-  {
-    id: "#ORD-8814",
-    date: "Oct 21, 2023 • 09:15 AM",
-    status: "COMPLETED",
-    items: [
-      { emoji: "🍌", color: "#fef08a", name: "Organic Bananas" },
-      { emoji: "🍞", color: "#ffedd5", name: "Grocery Bundle" },
-    ],
-    itemsTotal: 2,
-    totalAmount: "Rp 18.900",
-    action: "Reorder",
-  },
-  {
-    id: "#ORD-8702",
-    date: "Oct 18, 2023 • 18:45 PM",
-    status: "CANCELLED",
-    items: [{ emoji: "🍫", color: "#e5e7eb", name: "Dark Artisan Chocolates" }],
-    itemsTotal: 1,
-    totalAmount: "Rp 12.000",
-    action: "View Details",
-  },
-];
-
 export default function OrderList() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("ongoing");
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error || !data || data.length === 0) {
-        setOrders(sampleOrdersData);
-      } else {
-        setOrders(data);
-      }
-    } catch {
-      setOrders(sampleOrdersData);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    // Definisi fungsi fetch di dalam useEffect untuk memenuhi aturan ESLint
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from("orders")
+          .select("*, order_items(*)")
+          .order("created_at", { ascending: false });
+
+        if (error || !data) {
+          setOrders([]);
+        } else {
+          // Mapping data dari DB ke struktur UI
+          const formatted = data.map((order) => ({
+            id: order.order_id,
+            date: new Date(order.created_at).toLocaleString("id-ID"),
+            status: order.status,
+            totalAmount: new Intl.NumberFormat("id-ID", {
+              style: "currency",
+              currency: "IDR",
+            }).format(order.total_amount),
+            itemsTotal: order.order_items?.length || 0,
+            items: (order.order_items || []).slice(0, 2).map((i) => ({
+              name: i.product_name,
+              emoji: "📦",
+              color: "#f1f5f9",
+            })),
+            action: order.status === "IN_DELIVERY" ? "Track Order" : "Reorder",
+          }));
+          setOrders(formatted);
+        }
+      } catch (err) {
+        console.error("Fetch orders error:", err);
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchOrders();
   }, []);
 
@@ -96,29 +78,34 @@ export default function OrderList() {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case "IN_DELIVERY": return <Truck size={14} />;
-      case "COMPLETED": return <CheckCircle size={14} />;
-      case "CANCELLED": return <XCircle size={14} />;
-      default: return null;
+      case "IN_DELIVERY":
+        return <Truck size={14} />;
+      case "COMPLETED":
+        return <CheckCircle size={14} />;
+      case "CANCELLED":
+        return <XCircle size={14} />;
+      default:
+        return null;
     }
   };
 
-  const ongoingOrders = orders.filter(o => o.status === "IN_DELIVERY");
-  const historyOrders = orders.filter(o => ["COMPLETED", "CANCELLED"].includes(o.status));
+  const ongoingOrders = orders.filter((o) => o.status === "IN_DELIVERY");
+  const historyOrders = orders.filter((o) =>
+    ["COMPLETED", "CANCELLED"].includes(o.status)
+  );
   const displayOrders = activeTab === "ongoing" ? ongoingOrders : historyOrders;
 
   return (
     <div className="min-h-screen bg-azure-bg pb-24 max-w-[420px] mx-auto font-sans relative">
-      
-      {/* Header */}
       <header className="p-6 pb-2 sticky top-0 bg-azure-bg z-40">
         <div className="flex justify-between items-center mb-6">
           <Menu size={24} className="text-slate-800 cursor-pointer" />
-          <h1 className="text-xl font-black text-slate-900 tracking-tight">My Orders</h1>
+          <h1 className="text-xl font-black text-slate-900 tracking-tight">
+            My Orders
+          </h1>
           <ShoppingBag size={24} className="text-slate-800 cursor-pointer" />
         </div>
 
-        {/* Tabs Modern */}
         <div className="flex border-b border-slate-200">
           <button
             onClick={() => setActiveTab("ongoing")}
@@ -145,12 +132,13 @@ export default function OrderList() {
         </div>
       </header>
 
-      {/* Order List */}
       <div className="px-6 mt-4 space-y-4">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">
             <Loader2 size={32} className="animate-spin mb-2" />
-            <p className="text-xs font-bold tracking-widest uppercase">Loading Orders...</p>
+            <p className="text-xs font-bold tracking-widest uppercase">
+              Loading Orders...
+            </p>
           </div>
         ) : displayOrders.length > 0 ? (
           displayOrders.map((order, index) => (
@@ -160,21 +148,25 @@ export default function OrderList() {
                 order.status === "CANCELLED" ? "opacity-75 grayscale-[0.3]" : ""
               }`}
             >
-              {/* Order Header */}
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
                     Order ID <span className="text-slate-900">{order.id}</span>
                   </p>
-                  <p className="text-[11px] font-medium text-slate-400">{order.date}</p>
+                  <p className="text-[11px] font-medium text-slate-400">
+                    {order.date}
+                  </p>
                 </div>
-                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tighter border ${getStatusStyle(order.status)}`}>
+                <div
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tighter border ${getStatusStyle(
+                    order.status
+                  )}`}
+                >
                   {getStatusIcon(order.status)}
                   {order.status.replace("_", " ")}
                 </div>
               </div>
 
-              {/* Items Preview */}
               <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-2xl mb-4 border border-slate-100">
                 <div className="flex -space-x-3">
                   {order.items.map((item, idx) => (
@@ -194,7 +186,7 @@ export default function OrderList() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-slate-800 truncate">
-                    {order.items.map(i => i.name).join(", ")}
+                    {order.items.map((i) => i.name).join(", ")}
                   </p>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
                     {order.itemsTotal} items
@@ -202,11 +194,14 @@ export default function OrderList() {
                 </div>
               </div>
 
-              {/* Footer */}
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total Amount</p>
-                  <p className="text-lg font-black text-azure-primary">{order.totalAmount}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
+                    Total Amount
+                  </p>
+                  <p className="text-lg font-black text-azure-primary">
+                    {order.totalAmount}
+                  </p>
                 </div>
                 <button
                   onClick={() => {
@@ -215,9 +210,9 @@ export default function OrderList() {
                     }
                   }}
                   className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 ${
-                    order.status === "CANCELLED" 
-                    ? "bg-slate-100 text-slate-400" 
-                    : "bg-azure-primary text-white shadow-blue-500/20"
+                    order.status === "CANCELLED"
+                      ? "bg-slate-100 text-slate-400"
+                      : "bg-azure-primary text-white shadow-blue-500/20"
                   }`}
                 >
                   {order.action}
@@ -229,29 +224,13 @@ export default function OrderList() {
           <div className="text-center py-20 bg-white rounded-[40px] border-2 border-dashed border-slate-100">
             <ShoppingBag size={48} className="mx-auto text-slate-200 mb-4" />
             <p className="text-sm font-bold text-slate-400">
-              {activeTab === "ongoing" ? "No ongoing orders" : "No order history"}
+              {activeTab === "ongoing"
+                ? "No ongoing orders"
+                : "No order history"}
             </p>
           </div>
         )}
       </div>
-
-      {/* Restock Banner (Azure Tertiary Styled) */}
-      <section className="mx-6 mt-10 mb-8 bg-gradient-to-br from-azure-tertiary to-purple-700 rounded-[32px] p-8 text-center text-white relative overflow-hidden shadow-xl shadow-purple-500/20">
-        <div className="relative z-10">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <Sparkles size={16} className="text-purple-200" />
-            <span className="text-[10px] font-black uppercase tracking-[3px]">Weekly Routine</span>
-          </div>
-          <h2 className="text-2xl font-black mb-2 leading-tight">Restock your<br/>favorites?</h2>
-          <p className="text-[11px] opacity-80 mb-6 font-medium">Your frequent items are ready for a quick checkout.</p>
-          <button className="bg-white text-azure-tertiary px-6 py-3 rounded-full text-xs font-black shadow-lg active:scale-95 transition-transform uppercase tracking-wider">
-            Order Fresh Milk & Bread
-          </button>
-          <div className="text-4xl mt-6 animate-bounce">🥖🥛</div>
-        </div>
-        {/* Dekorasi Background */}
-        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-      </section>
 
       <BottomNav />
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { 
   ArrowLeft, Plus, Search, Trash2, Pencil, PackageOpen, Loader2
 } from 'lucide-react';
@@ -16,32 +16,34 @@ export default function ManageProducts() {
   const [activeCategory, setActiveCategory] = useState('Semua');
   const [categories, setCategories] = useState(['Semua']); 
 
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('id', { ascending: false });
-
-      if (error) throw error;
-      
-      if (data) {
-        setProducts(data);
-        const allCategories = data.map(product => product.category);
-        const uniqueCategories = [...new Set(allCategories)];
-        setCategories(['Semua', ...uniqueCategories]);
-      }
-    } catch (error) {
-      console.error('Error fetching products:', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Menggunakan useEffect untuk memuat data
   useEffect(() => {
+    // Definisi fungsi di dalam useEffect untuk menghindari peringatan ESLint
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .order('id', { ascending: false });
+
+        if (error) throw error;
+        
+        if (data) {
+          setProducts(data);
+          const allCategories = data.map(product => product.category);
+          const uniqueCategories = [...new Set(allCategories)];
+          setCategories(['Semua', ...uniqueCategories]);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchProducts();
-  }, []);
+  }, []); // Dependency array kosong memastikan hanya jalan sekali saat mount
 
   const handleDelete = async (id, name) => {
     if (window.confirm(`Yakin ingin menghapus produk "${name}"?`)) {
@@ -134,11 +136,12 @@ export default function ManageProducts() {
           filteredProducts.map((product) => (
             <div key={product.id} className="bg-white rounded-[28px] p-3 shadow-sm border border-slate-100 flex gap-4 hover:shadow-md transition-shadow">
               
-              {/* Image Preview with Badge */}
+              {/* Image Preview */}
               <div className="relative w-24 h-24 shrink-0 rounded-2xl overflow-hidden bg-slate-50">
-                <span className="absolute top-1.5 left-1.5 bg-azure-tertiary/90 backdrop-blur-sm text-white text-[8px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">
+                <span className="absolute top-1.5 left-1.5 bg-azure-tertiary/90 backdrop-blur-sm text-white text-[8px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter z-10">
                   {product.category}
                 </span>
+                {/* Gunakan img dengan alt yang jelas */}
                 <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
               </div>
 
@@ -149,7 +152,7 @@ export default function ManageProducts() {
                   <div className="flex items-center gap-1.5 mt-1">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      In Stock
+                      In Stock: {product.quantity}
                     </p>
                   </div>
                 </div>
