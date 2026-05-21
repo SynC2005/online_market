@@ -57,10 +57,6 @@ export default function OrderList() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
   const fetchOrders = async () => {
     try {
       setLoading(true);
@@ -80,6 +76,10 @@ export default function OrderList() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
   const getStatusStyle = (status) => {
     switch (status) {

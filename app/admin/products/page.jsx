@@ -16,10 +16,6 @@ export default function ManageProducts() {
   const [activeCategory, setActiveCategory] = useState('Semua');
   const [categories, setCategories] = useState(['Semua']); 
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -42,6 +38,10 @@ export default function ManageProducts() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const handleDelete = async (id, name) => {
     if (window.confirm(`Yakin ingin menghapus produk "${name}"?`)) {
