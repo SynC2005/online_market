@@ -6,6 +6,7 @@ import Script from "next/script";
 
 // IMPORT SPEED INSIGHTS DI SINI
 import { SpeedInsights } from "@vercel/speed-insights/next"; 
+import { Analytics } from "@vercel/analytics/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
