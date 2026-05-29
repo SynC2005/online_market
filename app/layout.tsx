@@ -43,6 +43,7 @@ export default async function RootLayout({
         {/* LETAKKAN KOMPONENNYA DI BAWAH CHILDREN */}
         {/* SpeedInsights akan otomatis mendeteksi konfigurasi CSP Next.js */}
         <SpeedInsights />
+        <Analytics />
         <Script 
           src="https://app.sandbox.midtrans.com/snap/snap.js"
           data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
