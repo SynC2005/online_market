@@ -3,6 +3,8 @@
 import { supabase } from "@/utils/supabase";
 import midtransClient from "midtrans-client"; 
 import { revalidatePath } from "next/cache"; 
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 
 /**
  * ─── MODUL MANAJEMEN ORDER & CHECKOUT ───
@@ -126,19 +128,32 @@ export async function processCheckoutBackend(userEmail, cartItems) {
  * Mitigasi E-02 & E-03: Validasi Sesi dan Peran (Role) secara Server-Side
  */
 async function verifyAdminOtorisasi() {
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
+  // 1. Ambil token 'fluid_market_token' dari brankas Cookie Next.js (Wajib pakai await di Next 15)
+  const cookieStore = await cookies();
+  const token = cookieStore.get("fluid_market_token")?.value;
+
+  if (!token) {
     throw new Error("Unauthorized: Silakan login terlebih dahulu.");
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  // 2. Siapkan Kunci Rahasia
+  const secretString = process.env.JWT_SECRET_KEY;
+  if (!secretString) throw new Error("Server Error: JWT_SECRET_KEY tidak ditemukan.");
+  const secretKey = new TextEncoder().encode(secretString);
 
-  if (profileError || !profile || profile.role !== "admin") {
-    throw new Error("Forbidden: Anda tidak memiliki akses halaman ini.");
+  try {
+    // 3. Bongkar token dan cek perannya (Sama persis seperti di Middleware)
+    const { payload } = await jwtVerify(token, secretKey);
+    
+    if (payload.role !== "admin") {
+      throw new Error("Forbidden: Anda tidak memiliki akses halaman ini.");
+    }
+
+    // Jika sukses, kita kembalikan email/data adminnya jika suatu saat dibutuhkan
+    return payload; 
+
+  } catch (error) {
+    throw new Error("Unauthorized: Sesi Anda tidak valid atau kedaluwarsa.");
   }
 }
 
