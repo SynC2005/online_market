@@ -24,13 +24,11 @@ export async function processCheckoutBackend(userEmail, cartItems) {
       return { success: false, message: "Profil atau alamat tidak ditemukan." };
     }
 
-    // A. Ambil daftar ID produk dari payload client
     const productIds = cartItems.map((item) => item.id);
 
-    // B. Ambil data harga dan quantity (stok) asli langsung dari database server
     const { data: realProducts, error: dbError } = await supabase
       .from("products")
-      .select("id, name, price, quantity") // Sesuai dengan kolom 'quantity' pada struktur DB Anda
+      .select("id, name, price, quantity") 
       .in("id", productIds);
 
     if (dbError || !realProducts) {
@@ -41,7 +39,6 @@ export async function processCheckoutBackend(userEmail, cartItems) {
     const validatedOrderItems = [];
     const orderId = `ORD-${Math.floor(10000 + Math.random() * 90000)}`; 
 
-    // C. Lakukan perhitungan ulang secara aman di sisi server
     for (const item of cartItems) {
       const realProduct = realProducts.find((p) => p.id === item.id);
 
@@ -49,7 +46,6 @@ export async function processCheckoutBackend(userEmail, cartItems) {
         return { success: false, message: `Produk ID ${item.id} tidak valid.` };
       }
 
-      // Mencegah manipulasi kuantitas minus, nol, atau melebihi stok quantity di DB
       if (item.quantity <= 0 || item.quantity > realProduct.quantity) {
         return { 
           success: false, 
@@ -57,7 +53,6 @@ export async function processCheckoutBackend(userEmail, cartItems) {
         };
       }
 
-      // Menggunakan HARGA ASLI DATABASE
       const subtotal = realProduct.price * item.quantity;
       totalAmount += subtotal;
 
@@ -71,7 +66,6 @@ export async function processCheckoutBackend(userEmail, cartItems) {
       });
     }
 
-    // 1. Simpan Header ke tabel 'orders'
     const { error: orderError } = await supabase
       .from("orders")
       .insert({
@@ -84,7 +78,6 @@ export async function processCheckoutBackend(userEmail, cartItems) {
 
     if (orderError) throw orderError;
 
-    // 2. Simpan Detail ke 'order_items'
     const { error: itemsError } = await supabase
       .from("order_items")
       .insert(validatedOrderItems);
@@ -120,6 +113,7 @@ export async function processCheckoutBackend(userEmail, cartItems) {
       success: true, 
       orderId: orderId,
       paymentUrl: transaction.redirect_url, 
+      token: transaction.token // ✅ PENAMBAHAN TOKEN UNTUK SNAP POPUP
     };
 
   } catch (error) {
@@ -148,10 +142,8 @@ async function verifyAdminOtorisasi() {
   }
 }
 
-// Mengambil Data Pesanan Aktif untuk Admin
 export async function getActiveOrders() {
   try {
-    // Jalankan validasi satpam server
     await verifyAdminOtorisasi();
 
     const { data, error } = await supabase
@@ -172,10 +164,8 @@ export async function getActiveOrders() {
   }
 }
 
-// Menyelesaikan Pesanan oleh Admin (Mitigasi E-05)
 export async function completeOrder(orderId) {
   try {
-    // Jalankan validasi satpam server
     await verifyAdminOtorisasi();
 
     const { error } = await supabase

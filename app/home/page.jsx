@@ -162,9 +162,37 @@ export default function FluidMarket() {
 
   const processOrder = async (profile) => {
     setIsLoadingCheckout(true);
-    const result = await processCheckoutBackend(userSession.email, cartItems);
-    if (result.success && result.paymentUrl) window.location.href = result.paymentUrl;
-    setIsLoadingCheckout(false);
+    
+    try {
+      const result = await processCheckoutBackend(userSession.email, cartItems);
+      
+      // Ubah logika: Jika sukses dan mendapat token, panggil window.snap.pay
+      if (result.success && result.token) {
+        window.snap.pay(result.token, {
+          onSuccess: function (result) {
+            alert("Pembayaran berhasil!");
+            router.push("/home/order_list"); 
+          },
+          onPending: function (result) {
+            alert("Menunggu pembayaran diselesaikan.");
+            router.push("/home/order_list");
+          },
+          onError: function (result) {
+            alert("Pembayaran gagal. Silakan coba lagi.");
+          },
+          onClose: function () {
+            alert("Anda menutup jendela sebelum menyelesaikan pembayaran.");
+          }
+        });
+      } else {
+        alert("Gagal memproses pesanan: " + result.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Terjadi kesalahan sistem.");
+    } finally {
+      setIsLoadingCheckout(false);
+    }
   };
 
   return (
